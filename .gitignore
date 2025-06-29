@@ -1,0 +1,8 @@
+# Ignore environment configuration
+.env
+
+# Ignore media folder
+media/
+
+# Misc
+.DS_Store
