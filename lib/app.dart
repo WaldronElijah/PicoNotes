@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'features/counter/presentation/view/counter_screen.dart';
 
 class PicoNotesApp extends StatelessWidget {
   const PicoNotesApp({super.key});
@@ -10,9 +11,7 @@ class PicoNotesApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: const Scaffold(
-        body: Center(child: Text('PicoNotes')),
-      ),
+      home: const CounterScreen(),
     );
   }
 }
