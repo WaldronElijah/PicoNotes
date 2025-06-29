@@ -9,3 +9,5 @@ Visual bookmarker, Apple notes with photo functionality
 3. Run the app with `flutter run`.
 
 The `lib/` directory follows a feature-first structure with MVVM inside each module.
+
+For more information about the persistence architecture, see [docs/PERSISTENCE_LAYER.md](docs/PERSISTENCE_LAYER.md).
