@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'features/counter/presentation/view/counter_screen.dart';
+import 'features/note_editor/presentation/view/note_editor_screen.dart';
+import 'shared/theme/app_theme.dart';
 
 class PicoNotesApp extends StatelessWidget {
   const PicoNotesApp({super.key});
@@ -8,10 +9,8 @@ class PicoNotesApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'PicoNotes',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: const CounterScreen(),
+      theme: AppTheme.darkTheme,
+      home: const NoteEditorScreen(),
     );
   }
 }
