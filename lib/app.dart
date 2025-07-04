@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'features/note_editor/presentation/view/note_editor_screen.dart';
+import 'core/navigation/main_navigation.dart';
 import 'shared/theme/app_theme.dart';
 
 class PicoNotesApp extends StatelessWidget {
@@ -10,7 +10,7 @@ class PicoNotesApp extends StatelessWidget {
     return MaterialApp(
       title: 'PicoNotes',
       theme: AppTheme.darkTheme,
-      home: const NoteEditorScreen(),
+      home: const MainNavigation(),
     );
   }
 }

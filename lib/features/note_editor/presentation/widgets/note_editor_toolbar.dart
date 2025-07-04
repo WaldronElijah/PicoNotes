@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../viewmodel/note_editor_view_model.dart';
+import 'custom_modals.dart';
 
 class NoteEditorToolbar extends ConsumerWidget {
   const NoteEditorToolbar({super.key});
@@ -13,101 +15,62 @@ class NoteEditorToolbar extends ConsumerWidget {
         color: Color(0xFF323233),
       ),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          // Heading label
-          Container(
-            padding: const EdgeInsets.only(left: 4, right: 8),
-            child: const Text(
-              'Heading',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-                fontFamily: 'SF Pro Text',
-              ),
-            ),
+          // 1. Format button
+          _buildToolbarIconButton(
+            context,
+            CupertinoIcons.textformat,
+            onTap: () => CustomModals.showFormatModal(context),
           ),
           
-          // Vertical separator
-          Container(
-            width: 1,
-            height: 24,
-            color: Colors.white.withOpacity(0.3),
+          // 2. Checklist button
+          _buildToolbarIconButton(
+            context,
+            CupertinoIcons.check_mark_circled,
+            onTap: () => CustomModals.showChecklistModal(context),
           ),
           
-          // Toolbar buttons
-          Expanded(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                // Format button
-                _buildToolbarButton(
-                  context,
-                  '􀅑', // SF Symbol: bold
-                  onTap: () => _showFormatModal(context),
-                ),
-                
-                // Checklist button
-                _buildToolbarButton(
-                  context,
-                  '􀷾', // SF Symbol: checklist
-                  onTap: () => _showChecklistModal(context),
-                ),
-                
-                // Table button
-                _buildToolbarButton(
-                  context,
-                  '􀏣', // SF Symbol: table
-                  onTap: () => _showTableModal(context),
-                ),
-                
-                // Plus rectangle button
-                _buildToolbarButton(
-                  context,
-                  '􀏩', // SF Symbol: plus.rectangle.on.rectangle
-                  onTap: () => _showLayoutModal(context),
-                ),
-                
-                // Stack badge button
-                _buildToolbarButton(
-                  context,
-                  '􀏱', // SF Symbol: rectangle.stack.badge.plus
-                  onTap: () => _showStackModal(context),
-                ),
-                
-                // Brain button
-                _buildToolbarButton(
-                  context,
-                  '􀯏', // SF Symbol: brain.head.profile
-                  onTap: () => _showBrainModal(context),
-                ),
-                
-                // Photo button
-                _buildToolbarButton(
-                  context,
-                  '􀏅', // SF Symbol: photo
-                  onTap: () => _showPhotoModal(context),
-                ),
-                
-                // Chevron down button
-                _buildToolbarButton(
-                  context,
-                  '􀆈', // SF Symbol: chevron.down
-                  onTap: () => _showMoreToolsModal(context),
-                ),
-              ],
-            ),
+          // 3. Table button
+          _buildToolbarIconButton(
+            context,
+            CupertinoIcons.table,
+            onTap: () => CustomModals.showTableModal(context),
           ),
           
-          // Hide keyboard button
-          Container(
-            padding: const EdgeInsets.only(right: 8),
-            child: _buildToolbarButton(
-              context,
-              '􀅾', // SF Symbol: keyboard.chevron.compact.down
-              color: const Color(0xFF8E8E93),
-              onTap: () => FocusScope.of(context).unfocus(),
-            ),
+          // 4. Photo gallery bank button
+          _buildToolbarIconButton(
+            context,
+            CupertinoIcons.photo,
+            onTap: () => CustomModals.showPhotoBankModal(context),
+          ),
+          
+          // 5. Carousel button (layout)
+          _buildToolbarIconButton(
+            context,
+            CupertinoIcons.plus_rectangle_on_rectangle,
+            onTap: () => CustomModals.showCarouselModal(context),
+          ),
+          
+          // 6. Stack button
+          _buildToolbarIconButton(
+            context,
+            CupertinoIcons.rectangle_stack_badge_plus,
+            onTap: () => CustomModals.showStackModal(context),
+          ),
+          
+          // 7. AI button
+          _buildToolbarIconButton(
+            context,
+            CupertinoIcons.lightbulb,
+            onTap: () => _showBrainModal(context),
+          ),
+          
+          // 8. X button (close/dismiss)
+          _buildToolbarIconButton(
+            context,
+            CupertinoIcons.xmark,
+            onTap: () => FocusScope.of(context).unfocus(),
           ),
         ],
       ),
@@ -138,84 +101,23 @@ class NoteEditorToolbar extends ConsumerWidget {
     );
   }
   
-  void _showFormatModal(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (context) => _buildModal(
-        context,
-        'Format Options',
-        [
-          _buildModalOption('Bold', '􀅑', context),
-          _buildModalOption('Italic', '􀅒', context),
-          _buildModalOption('Underline', '􀅓', context),
-          _buildModalOption('Strikethrough', '􀅔', context),
-          _buildModalOption('Highlight', '􀈎', context),
-        ],
-      ),
-    );
-  }
-  
-  void _showChecklistModal(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (context) => _buildModal(
-        context,
-        'Checklist Options',
-        [
-          _buildModalOption('Add Checklist', '􀷾', context),
-          _buildModalOption('Bulleted List', '􀋲', context),
-          _buildModalOption('Numbered List', '􀋱', context),
-        ],
-      ),
-    );
-  }
-  
-  void _showTableModal(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (context) => _buildModal(
-        context,
-        'Table Options',
-        [
-          _buildModalOption('Insert Table', '􀏣', context),
-          _buildModalOption('Add Row', '􀏤', context),
-          _buildModalOption('Add Column', '􀏥', context),
-        ],
-      ),
-    );
-  }
-  
-  void _showLayoutModal(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (context) => _buildModal(
-        context,
-        'Layout Options',
-        [
-          _buildModalOption('Add Layout', '􀏩', context),
-          _buildModalOption('Two Columns', '􀏪', context),
-          _buildModalOption('Three Columns', '􀏫', context),
-        ],
-      ),
-    );
-  }
-  
-  void _showStackModal(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (context) => _buildModal(
-        context,
-        'Stack Options',
-        [
-          _buildModalOption('Add Stack', '􀏱', context),
-          _buildModalOption('Group Items', '􀏲', context),
-          _buildModalOption('Ungroup', '􀏳', context),
-        ],
+  Widget _buildToolbarIconButton(
+    BuildContext context,
+    IconData icon, {
+    Color? color,
+    VoidCallback? onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 32,
+        height: 32,
+        alignment: Alignment.center,
+        child: Icon(
+          icon,
+          color: color ?? Colors.white,
+          size: 20,
+        ),
       ),
     );
   }
@@ -228,46 +130,15 @@ class NoteEditorToolbar extends ConsumerWidget {
         context,
         'AI Options',
         [
-          _buildModalOption('Summarize', '􀯏', context),
-          _buildModalOption('Generate Ideas', '􀯐', context),
-          _buildModalOption('Improve Writing', '􀯑', context),
+          _buildModalIconOption('Summarize', CupertinoIcons.doc_text, context),
+          _buildModalIconOption('Generate Ideas', CupertinoIcons.lightbulb, context),
+          _buildModalIconOption('Improve Writing', CupertinoIcons.pencil_outline, context),
         ],
       ),
     );
   }
   
-  void _showPhotoModal(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (context) => _buildModal(
-        context,
-        'Photo Options',
-        [
-          _buildModalOption('Take Photo', '􀎤', context),
-          _buildModalOption('Choose from Library', '􀏅', context),
-          _buildModalOption('Photo Bank', '􀏆', context),
-        ],
-      ),
-    );
-  }
-  
-  void _showMoreToolsModal(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (context) => _buildModal(
-        context,
-        'More Tools',
-        [
-          _buildModalOption('Drawing', '􀎒', context),
-          _buildModalOption('Voice Note', '􀊰', context),
-          _buildModalOption('Location', '􀋑', context),
-          _buildModalOption('Link', '􀉣', context),
-        ],
-      ),
-    );
-  }
+
   
   Widget _buildModal(BuildContext context, String title, List<Widget> options) {
     return Container(
@@ -313,7 +184,7 @@ class NoteEditorToolbar extends ConsumerWidget {
     );
   }
   
-  Widget _buildModalOption(String title, String icon, BuildContext context) {
+  Widget _buildModalIconOption(String title, IconData icon, BuildContext context) {
     return GestureDetector(
       onTap: () => Navigator.of(context).pop(),
       child: Container(
@@ -321,13 +192,10 @@ class NoteEditorToolbar extends ConsumerWidget {
         padding: const EdgeInsets.symmetric(horizontal: 20),
         child: Row(
           children: [
-            Text(
+            Icon(
               icon,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 17,
-                fontFamily: 'SF Pro Text',
-              ),
+              color: Colors.white,
+              size: 17,
             ),
             const SizedBox(width: 12),
             Text(
