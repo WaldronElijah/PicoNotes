@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
+import 'package:sf_symbols/sf_symbols.dart';
 import '../../../../shared/widgets/brand_icon.dart';
 
 // Connected button data class
@@ -430,17 +431,33 @@ class CustomModals {
                         children: [
                           Row(
                             children: [
-                              _buildCarouselIcon(CupertinoIcons.plus), // Add
+                              _buildCarouselIcon(const Icon(
+                                CupertinoIcons.plus,
+                                color: Colors.white,
+                                size: 20,
+                              )), // Add
                               const SizedBox(width: 12),
-                              _buildCarouselIcon(CupertinoIcons.slowmo), // Loading/Progress
+                              _buildCarouselIcon(const Icon(
+                                CupertinoIcons.slowmo,
+                                color: Colors.white,
+                                size: 20,
+                              )), // Loading/Progress
                             ],
                           ),
                           const SizedBox(height: 12),
                           Row(
                             children: [
-                              _buildCarouselIcon(CupertinoIcons.arrow_up_arrow_down), // Reverse Order
+                              _buildCarouselIcon(const Icon(
+                                CupertinoIcons.arrow_up_arrow_down,
+                                color: Colors.white,
+                                size: 20,
+                              )), // Reverse Order
                               const SizedBox(width: 12),
-                              _buildCarouselIcon(CupertinoIcons.arrow_up_left_arrow_down_right), // Resize
+                              _buildCarouselIcon(const Icon(
+                                CupertinoIcons.arrow_up_left_arrow_down_right,
+                                color: Colors.white,
+                                size: 20,
+                              )), // Resize
                             ],
                           ),
                         ],
@@ -454,21 +471,49 @@ class CustomModals {
                         children: [
                           Row(
                             children: [
-                              _buildCarouselIcon(CupertinoIcons.list_number), // Number List
+                              _buildCarouselIcon(const Icon(
+                                CupertinoIcons.list_number,
+                                color: Colors.white,
+                                size: 20,
+                              )), // Number List
                               const SizedBox(width: 12),
-                              _buildCarouselIcon(CupertinoIcons.checkmark_circle), // Check List
+                              _buildCarouselIcon(const Icon(
+                                CupertinoIcons.checkmark_circle,
+                                color: Colors.white,
+                                size: 20,
+                              )), // Check List
                               const SizedBox(width: 12),
-                              _buildCarouselIcon(CupertinoIcons.arrow_2_squarepath), // Rectangle Swap (closest)
+                              _buildCarouselIcon(
+                                SfSymbol(
+                                  name: 'rectangle.2.swap',
+                                  color: Colors.white,
+                                  size: 20,
+                                ),
+                              ), // Rectangle Swap
                             ],
                           ),
                           const SizedBox(height: 12),
                           Row(
                             children: [
-                              _buildCarouselIcon(CupertinoIcons.text_bubble_fill), // Text Below Photo (closest)
+                              _buildCarouselIcon(
+                                SfSymbol(
+                                  name: 'text.below.photo',
+                                  color: Colors.white,
+                                  size: 20,
+                                ),
+                              ), // Text Below Photo
                               const SizedBox(width: 12),
-                              _buildCarouselIcon(CupertinoIcons.photo_fill_on_rectangle_fill), // Caption Within Photo
+                              _buildCarouselIcon(const Icon(
+                                CupertinoIcons.photo_fill_on_rectangle_fill,
+                                color: Colors.white,
+                                size: 20,
+                              )), // Caption Within Photo
                               const SizedBox(width: 12),
-                              _buildCarouselIcon(CupertinoIcons.waveform), // Wave Form
+                              _buildCarouselIcon(const Icon(
+                                CupertinoIcons.waveform,
+                                color: Colors.white,
+                                size: 20,
+                              )), // Wave Form
                             ],
                           ),
                         ],
@@ -530,17 +575,33 @@ class CustomModals {
                         children: [
                           Row(
                             children: [
-                              _buildStackIcon(CupertinoIcons.plus), // Add
+                              _buildStackIcon(const Icon(
+                                CupertinoIcons.plus,
+                                color: Colors.white,
+                                size: 20,
+                              )), // Add
                               const SizedBox(width: 12),
-                              _buildStackIcon(CupertinoIcons.slowmo), // Loading/Progress
+                              _buildStackIcon(const Icon(
+                                CupertinoIcons.slowmo,
+                                color: Colors.white,
+                                size: 20,
+                              )), // Loading/Progress
                             ],
                           ),
                           const SizedBox(height: 12),
                           Row(
                             children: [
-                              _buildStackIcon(CupertinoIcons.arrow_up_arrow_down), // Reverse Order
+                              _buildStackIcon(const Icon(
+                                CupertinoIcons.arrow_up_arrow_down,
+                                color: Colors.white,
+                                size: 20,
+                              )), // Reverse Order
                               const SizedBox(width: 12),
-                              _buildStackIcon(CupertinoIcons.arrow_up_left_arrow_down_right), // Resize
+                              _buildStackIcon(const Icon(
+                                CupertinoIcons.arrow_up_left_arrow_down_right,
+                                color: Colors.white,
+                                size: 20,
+                              )), // Resize
                             ],
                           ),
                         ],
@@ -554,21 +615,49 @@ class CustomModals {
                         children: [
                           Row(
                             children: [
-                              _buildStackIcon(CupertinoIcons.list_number), // Number List
+                              _buildStackIcon(const Icon(
+                                CupertinoIcons.list_number,
+                                color: Colors.white,
+                                size: 20,
+                              )), // Number List
                               const SizedBox(width: 12),
-                              _buildStackIcon(CupertinoIcons.checkmark_circle), // Check List
+                              _buildStackIcon(const Icon(
+                                CupertinoIcons.checkmark_circle,
+                                color: Colors.white,
+                                size: 20,
+                              )), // Check List
                               const SizedBox(width: 12),
-                              _buildStackIcon(CupertinoIcons.arrow_2_squarepath), // Rectangle Swap (closest)
+                              _buildStackIcon(
+                                SfSymbol(
+                                  name: 'rectangle.2.swap',
+                                  color: Colors.white,
+                                  size: 20,
+                                ),
+                              ), // Rectangle Swap
                             ],
                           ),
                           const SizedBox(height: 12),
                           Row(
                             children: [
-                              _buildStackIcon(CupertinoIcons.text_bubble_fill), // Text Below Photo (closest)
+                              _buildStackIcon(
+                                SfSymbol(
+                                  name: 'text.below.photo',
+                                  color: Colors.white,
+                                  size: 20,
+                                ),
+                              ), // Text Below Photo
                               const SizedBox(width: 12),
-                              _buildStackIcon(CupertinoIcons.photo_fill_on_rectangle_fill), // Caption Within Photo
+                              _buildStackIcon(const Icon(
+                                CupertinoIcons.photo_fill_on_rectangle_fill,
+                                color: Colors.white,
+                                size: 20,
+                              )), // Caption Within Photo
                               const SizedBox(width: 12),
-                              _buildStackIcon(CupertinoIcons.waveform), // Wave Form
+                              _buildStackIcon(const Icon(
+                                CupertinoIcons.waveform,
+                                color: Colors.white,
+                                size: 20,
+                              )), // Wave Form
                             ],
                           ),
                         ],
@@ -1088,7 +1177,7 @@ class CustomModals {
     );
   }
 
-  static Widget _buildCarouselIcon(IconData icon) {
+  static Widget _buildCarouselIcon(Widget icon) {
     return Container(
       width: 40,
       height: 40,
@@ -1096,15 +1185,11 @@ class CustomModals {
         color: Colors.grey.shade800,
         borderRadius: BorderRadius.circular(6),
       ),
-      child: Icon(
-        icon,
-        color: Colors.white,
-        size: 20,
-      ),
+      child: Center(child: icon),
     );
   }
 
-  static Widget _buildStackIcon(IconData icon) {
+  static Widget _buildStackIcon(Widget icon) {
     return Container(
       width: 40,
       height: 40,
@@ -1112,11 +1197,7 @@ class CustomModals {
         color: Colors.grey.shade800,
         borderRadius: BorderRadius.circular(6),
       ),
-      child: Icon(
-        icon,
-        color: Colors.white,
-        size: 20,
-      ),
+      child: Center(child: icon),
     );
   }
 } 

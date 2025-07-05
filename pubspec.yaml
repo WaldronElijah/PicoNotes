@@ -9,6 +9,7 @@ dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.2
+  sf_symbols: ^0.2.0
   flutter_riverpod: ^2.4.0
   drift: ^2.11.0
   path_provider: ^2.0.14
