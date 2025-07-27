@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
-import 'package:sf_symbols/sf_symbols.dart';
 import '../../../../shared/widgets/brand_icon.dart';
 
 // Connected button data class
@@ -483,25 +482,21 @@ class CustomModals {
                                 size: 20,
                               )), // Check List
                               const SizedBox(width: 12),
-                              _buildCarouselIcon(
-                                SfSymbol(
-                                  name: 'rectangle.2.swap',
-                                  color: Colors.white,
-                                  size: 20,
-                                ),
-                              ), // Rectangle Swap
+                              _buildCarouselIcon(const Icon(
+                                CupertinoIcons.rectangle_on_rectangle,
+                                color: Colors.white,
+                                size: 20,
+                              )), // Rectangle Swap
                             ],
                           ),
                           const SizedBox(height: 12),
                           Row(
                             children: [
-                              _buildCarouselIcon(
-                                SfSymbol(
-                                  name: 'text.below.photo',
-                                  color: Colors.white,
-                                  size: 20,
-                                ),
-                              ), // Text Below Photo
+                              _buildCarouselIcon(const Icon(
+                                CupertinoIcons.text_justify,
+                                color: Colors.white,
+                                size: 20,
+                              )), // Text Below Photo
                               const SizedBox(width: 12),
                               _buildCarouselIcon(const Icon(
                                 CupertinoIcons.photo_fill_on_rectangle_fill,
@@ -627,25 +622,21 @@ class CustomModals {
                                 size: 20,
                               )), // Check List
                               const SizedBox(width: 12),
-                              _buildStackIcon(
-                                SfSymbol(
-                                  name: 'rectangle.2.swap',
-                                  color: Colors.white,
-                                  size: 20,
-                                ),
-                              ), // Rectangle Swap
+                              _buildStackIcon(const Icon(
+                                CupertinoIcons.rectangle_on_rectangle,
+                                color: Colors.white,
+                                size: 20,
+                              )), // Rectangle Swap
                             ],
                           ),
                           const SizedBox(height: 12),
                           Row(
                             children: [
-                              _buildStackIcon(
-                                SfSymbol(
-                                  name: 'text.below.photo',
-                                  color: Colors.white,
-                                  size: 20,
-                                ),
-                              ), // Text Below Photo
+                              _buildStackIcon(const Icon(
+                                CupertinoIcons.text_justify,
+                                color: Colors.white,
+                                size: 20,
+                              )), // Text Below Photo
                               const SizedBox(width: 12),
                               _buildStackIcon(const Icon(
                                 CupertinoIcons.photo_fill_on_rectangle_fill,

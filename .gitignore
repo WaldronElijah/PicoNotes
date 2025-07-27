@@ -4,6 +4,16 @@
 # Ignore media folder
 media/
 
+# Planning and Setup Documentation (contains sensitive info)
+*GAMEPLAN*.md
+*IMPLEMENTATION*.md
+*SETUP*.md
+*CHECKLIST*.md
+GOOGLE_APPLE_SIGNIN_SETUP.md
+MVP_GAMEPLAN.md
+PHASE_1_IMPLEMENTATION.md
+SIGNIN_SETUP_CHECKLIST.md
+
 # Misc
 .DS_Store
 

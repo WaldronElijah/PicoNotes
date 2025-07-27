@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../note_editor/presentation/view/note_editor_screen.dart';
+import '../../../../core/utils/responsive_utils.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -79,7 +80,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   
   Widget _buildHeader() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      padding: EdgeInsets.symmetric(
+        horizontal: ResponsiveUtils.horizontalPadding(context), 
+        vertical: 16
+      ),
       child: Column(
         children: [
           // Brand icon and title
@@ -103,11 +107,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ),
               ),
               const SizedBox(width: 12),
-              const Text(
+              Text(
                 'PicoNotes',
                 style: TextStyle(
                   color: Colors.white,
-                  fontSize: 28,
+                  fontSize: ResponsiveUtils.titleFontSize(context),
                   fontWeight: FontWeight.w900,
                   fontFamily: 'SF Pro Text',
                 ),
@@ -133,7 +137,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ],
           ),
           
-          const SizedBox(height: 24),
+          SizedBox(height: ResponsiveUtils.verticalSpacing(context)),
           
           // Search bar
           Container(
@@ -169,24 +173,26 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   
   Widget _buildRecentNotesSection() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
+      padding: EdgeInsets.symmetric(
+        horizontal: ResponsiveUtils.horizontalPadding(context)
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Recent',
             style: TextStyle(
               color: Colors.white,
-              fontSize: 20,
+              fontSize: ResponsiveUtils.headingFontSize(context),
               fontWeight: FontWeight.w600,
               fontFamily: 'SF Pro Text',
             ),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: ResponsiveUtils.verticalSpacing(context)),
           
           // Recent notes 2x2 carousel  
           SizedBox(
-            height: 420,
+            height: ResponsiveUtils.carouselHeight(context),
             child: PageView.builder(
               itemCount: 2, // 2 pages
               itemBuilder: (context, pageIndex) {
@@ -205,9 +211,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Note preview image - fills the entire card
+          // Note preview image - takes most of the space
           Expanded(
-            flex: 4,
+            flex: 5,
             child: Container(
               width: double.infinity,
               decoration: BoxDecoration(
@@ -234,38 +240,42 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           
           const SizedBox(height: 8),
           
-          // Title and date section - outside the image card
-          Expanded(
-            flex: 1,
+          // Title and date section - fixed height to prevent overflow
+          Container(
+            height: 36, // Fixed height for text section
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
                 // Note title
-                Text(
-                  title,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    fontFamily: 'SF Pro Text',
+                Flexible(
+                  child: Text(
+                    title,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: ResponsiveUtils.cardTitleFontSize(context),
+                      fontWeight: FontWeight.w600,
+                      fontFamily: 'SF Pro Text',
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
                 ),
                 
                 const SizedBox(height: 2),
                 
                 // Note date
-                Text(
-                  date,
-                  style: const TextStyle(
-                    color: Color(0xFF8E8E93),
-                    fontSize: 12,
-                    fontFamily: 'SF Pro Text',
+                Flexible(
+                  child: Text(
+                    date,
+                    style: TextStyle(
+                      color: const Color(0xFF8E8E93),
+                      fontSize: ResponsiveUtils.cardDateFontSize(context),
+                      fontFamily: 'SF Pro Text',
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
@@ -280,22 +290,31 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final titles = ['Meeting Notes', 'Shopping List', 'Ideas', 'Travel Plan', 'Recipes', 'Journal', 'Project Notes', 'Todo List'];
     final dates = ['Today', 'Yesterday', '2 days ago', 'Last week', 'Last month', '2 weeks ago', '3 days ago', 'Today'];
     
+    final cardWidth = ResponsiveUtils.cardWidth(context);
+    final cardHeight = ResponsiveUtils.cardHeight(context);
+    
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12),
       child: Column(
         children: [
           // First row
-          Expanded(
+          SizedBox(
+            height: cardHeight,
             child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Expanded(
+                Container(
+                  width: cardWidth,
+                  height: cardHeight,
                   child: _buildFolderNoteCard(
                     startIndex < titles.length ? titles[startIndex] : 'Empty',
                     startIndex < dates.length ? dates[startIndex] : 'No date',
                   ),
                 ),
                 const SizedBox(width: 12),
-                Expanded(
+                Container(
+                  width: cardWidth,
+                  height: cardHeight,
                   child: _buildFolderNoteCard(
                     startIndex + 1 < titles.length ? titles[startIndex + 1] : 'Empty',
                     startIndex + 1 < dates.length ? dates[startIndex + 1] : 'No date',
@@ -306,17 +325,23 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ),
           const SizedBox(height: 12),
           // Second row
-          Expanded(
+          SizedBox(
+            height: cardHeight,
             child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Expanded(
+                Container(
+                  width: cardWidth,
+                  height: cardHeight,
                   child: _buildFolderNoteCard(
                     startIndex + 2 < titles.length ? titles[startIndex + 2] : 'Empty',
                     startIndex + 2 < dates.length ? dates[startIndex + 2] : 'No date',
                   ),
                 ),
                 const SizedBox(width: 12),
-                Expanded(
+                Container(
+                  width: cardWidth,
+                  height: cardHeight,
                   child: _buildFolderNoteCard(
                     startIndex + 3 < titles.length ? titles[startIndex + 3] : 'Empty',
                     startIndex + 3 < dates.length ? dates[startIndex + 3] : 'No date',
@@ -332,24 +357,26 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   
   Widget _buildForkedNotesSection() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
+      padding: EdgeInsets.symmetric(
+        horizontal: ResponsiveUtils.horizontalPadding(context)
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Forked Notes',
             style: TextStyle(
               color: Colors.white,
-              fontSize: 20,
+              fontSize: ResponsiveUtils.headingFontSize(context),
               fontWeight: FontWeight.w600,
               fontFamily: 'SF Pro Text',
             ),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: ResponsiveUtils.verticalSpacing(context)),
           
           // Forked notes 1x1 carousel
           SizedBox(
-            height: 220,
+            height: ResponsiveUtils.singleRowHeight(context),
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
               itemCount: 3,
@@ -357,7 +384,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 final titles = ['Design Ideas Fork', 'Meeting Notes V2', 'Shopping List Copy'];
                 final dates = ['3 days ago', '1 week ago', '2 weeks ago'];
                 return Container(
-                  width: 180,
+                  width: ResponsiveUtils.horizontalItemWidth(context),
                   margin: const EdgeInsets.only(right: 12),
                   child: _buildFolderNoteCard(titles[index], dates[index]),
                 );
@@ -371,24 +398,26 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   
   Widget _buildSharedSection() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
+      padding: EdgeInsets.symmetric(
+        horizontal: ResponsiveUtils.horizontalPadding(context)
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Shared',
             style: TextStyle(
               color: Colors.white,
-              fontSize: 20,
+              fontSize: ResponsiveUtils.headingFontSize(context),
               fontWeight: FontWeight.w600,
               fontFamily: 'SF Pro Text',
             ),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: ResponsiveUtils.verticalSpacing(context)),
           
           // Shared notes 1x1 carousel
           SizedBox(
-            height: 220,
+            height: ResponsiveUtils.singleRowHeight(context),
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
               itemCount: 3,
@@ -396,7 +425,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 final titles = ['Team Project', 'Shared Recipe', 'Collaboration Notes'];
                 final dates = ['Shared today', 'Shared yesterday', 'Shared 2 days ago'];
                 return Container(
-                  width: 180,
+                  width: ResponsiveUtils.horizontalItemWidth(context),
                   margin: const EdgeInsets.only(right: 12),
                   child: _buildFolderNoteCard(titles[index], dates[index]),
                 );
@@ -410,7 +439,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   
   Widget _buildDivider() {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+      margin: EdgeInsets.symmetric(
+        horizontal: ResponsiveUtils.horizontalPadding(context), 
+        vertical: ResponsiveUtils.sectionSpacing(context)
+      ),
       height: 1,
       decoration: BoxDecoration(
         color: const Color(0xFF3C3C3E),
@@ -421,20 +453,22 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   
   Widget _buildFoldersSection() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
+      padding: EdgeInsets.symmetric(
+        horizontal: ResponsiveUtils.horizontalPadding(context)
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Folders',
             style: TextStyle(
               color: Colors.white,
-              fontSize: 20,
+              fontSize: ResponsiveUtils.headingFontSize(context),
               fontWeight: FontWeight.w600,
               fontFamily: 'SF Pro Text',
             ),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: ResponsiveUtils.verticalSpacing(context)),
           
           // Folders list
           _buildFolderItem('All Notes', CupertinoIcons.doc_text, 24),
