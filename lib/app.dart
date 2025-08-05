@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
-import 'core/navigation/main_navigation.dart';
-import 'shared/theme/app_theme.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'features/auth/presentation/view/login_screen.dart';
 
-class PicoNotesApp extends StatelessWidget {
+class PicoNotesApp extends ConsumerWidget {
   const PicoNotesApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return MaterialApp(
       title: 'PicoNotes',
-      theme: AppTheme.darkTheme,
-      home: const MainNavigation(),
+      theme: ThemeData.dark().copyWith(
+        scaffoldBackgroundColor: Colors.black,
+        primaryColor: Colors.blue,
+      ),
+      home: const LoginScreen(),
     );
   }
 }
