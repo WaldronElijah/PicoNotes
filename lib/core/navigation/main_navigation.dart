@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../features/home/presentation/view/home_screen.dart';
 import '../../features/note_editor/presentation/view/note_editor_screen.dart';
 import '../widgets/side_drawer.dart';
+import '../../features/auth/presentation/view/login_screen.dart';
 
 class MainNavigation extends ConsumerStatefulWidget {
   const MainNavigation({super.key});
