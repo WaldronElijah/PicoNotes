@@ -3,7 +3,14 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 
 class NoteEditorHeader extends StatelessWidget {
-  const NoteEditorHeader({super.key});
+  final VoidCallback? onSave;
+  final bool isSaving;
+  
+  const NoteEditorHeader({
+    super.key,
+    this.onSave,
+    this.isSaving = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -47,23 +54,30 @@ class NoteEditorHeader extends StatelessWidget {
                 ),
               ),
               
-              // More options button
-              GestureDetector(
-                onTap: () {
-                  // Show more options modal
-                  _showMoreOptionsModal(context);
-                },
-                child: Container(
-                  width: 24,
-                  height: 24,
-                  alignment: Alignment.center,
-                  child: const Icon(
-                    CupertinoIcons.ellipsis_circle,
-                    color: Colors.white,
-                    size: 17,
+              // Save button
+              if (onSave != null)
+                GestureDetector(
+                  onTap: isSaving ? null : onSave,
+                  child: Container(
+                    width: 24,
+                    height: 24,
+                    alignment: Alignment.center,
+                    child: isSaving
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                            ),
+                          )
+                        : const Icon(
+                            CupertinoIcons.check_mark,
+                            color: Color(0xFF3375F8),
+                            size: 17,
+                          ),
                   ),
                 ),
-              ),
             ],
           ),
         ),

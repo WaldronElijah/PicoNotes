@@ -30,7 +30,7 @@ class CustomModals {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const SizedBox(height: 12),
+            const SizedBox(height: 6),
             Container(
               width: 36,
               height: 5,
@@ -59,45 +59,47 @@ class CustomModals {
             
             const SizedBox(height: 20),
             
-            // Primary formatting buttons (iPhone style - wider span, centered)
+            // Row 2: Bold, Italic, Underline, Strikethrough (centered and connected)
             Center(
               child: _buildConnectedButtonGroup([
-                _ConnectedButton('', CupertinoIcons.bold, true),
-                _ConnectedButton('', CupertinoIcons.italic, true),
-                _ConnectedButton('', CupertinoIcons.underline, true),
-                _ConnectedButton('', CupertinoIcons.strikethrough, true),
+                _ConnectedButton('B', CupertinoIcons.bold, true),
+                _ConnectedButton('I', CupertinoIcons.italic, true),
+                _ConnectedButton('U', CupertinoIcons.underline, true),
+                _ConnectedButton('S', CupertinoIcons.strikethrough, true),
               ], isPrimary: true, isWideSpan: true),
             ),
             
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
             
-            // All secondary tools in one row (Connected groups)
+            // Row 3: Advanced Features with Dropdowns and Special Functions
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 12),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  // Long press list button (saves space)
-                  _buildLongPressListButton(),
+                  // Bullet List Dropdown (hold for Number, Hyphen)
+                  _buildListDropdown(),
                   
-                  // Text alignment group
-                  _buildConnectedButtonGroup([
-                    _ConnectedButton('', CupertinoIcons.text_alignleft, false),
-                    _ConnectedButton('', CupertinoIcons.text_aligncenter, false),
-                  ]),
+                  // Center Alignment Dropdown (hold for Left, Center, Right)
+                  _buildAlignmentDropdown(),
                   
-                  // Color and formatting group
-                  _buildConnectedButtonGroup([
-                    _ConnectedButton('', CupertinoIcons.textformat_size, false),
-                    _ConnectedButton('', CupertinoIcons.paintbrush, false),
-                    _ConnectedButton('', CupertinoIcons.squares_below_rectangle, false),
-                  ]),
+                  // Deep Link (Obsidian-style)
+                  _buildDeepLinkButton(),
                   
-                  // Advanced tools group
-                  _buildConnectedButtonGroup([
-                    _ConnectedButton('', CupertinoIcons.stop_fill, false),
-                    _ConnectedButton('', CupertinoIcons.flowchart, false),
-                  ]),
+                  // Highlight
+                  _buildFormatButton('', CupertinoIcons.paintbrush_fill, false),
+                  
+                  // Text Color (filled circle)
+                  _buildFormatButton('', CupertinoIcons.circle_fill, false),
+                  
+                  // Divider (line with dash under)
+                  _buildFormatButton('', CupertinoIcons.line_horizontal_3, false),
+                  
+                  // Block Note (filled black box)
+                  _buildFormatButton('', CupertinoIcons.square_fill, false),
+                  
+                  // Calendar Dropdown
+                  _buildCalendarButton(),
                 ],
               ),
             ),
@@ -231,18 +233,19 @@ class CustomModals {
     );
   }
 
-  // Photo Bank Modal
-  static void showPhotoBankModal(BuildContext context) {
+  // Media Modal
+  static void showMediaModal(BuildContext context) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      isScrollControlled: false,
+      isScrollControlled: true,
       builder: (context) => Container(
+        height: MediaQuery.of(context).size.height * 0.4,
         decoration: const BoxDecoration(
           color: Color(0xFF2C2C2E),
           borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(10),
-            topRight: Radius.circular(10),
+            topLeft: Radius.circular(20),
+            topRight: Radius.circular(20),
           ),
         ),
         child: Column(
@@ -259,134 +262,225 @@ class CustomModals {
             ),
             const SizedBox(height: 20),
             
+            // Top row of horizontal sliding circular buttons for media sources
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Column(
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    _buildMediaSourceButton('Search', CupertinoIcons.search),
+                    const SizedBox(width: 12),
+                    _buildMediaSourceButton('Files', CupertinoIcons.folder),
+                    const SizedBox(width: 12),
+                    _buildMediaSourceButton('Audio', CupertinoIcons.music_note),
+                    const SizedBox(width: 12),
+                    _buildMediaSourceButton('Pinterest', CupertinoIcons.heart),
+                    const SizedBox(width: 12),
+                    _buildMediaSourceButton('YouTube', CupertinoIcons.play_circle),
+                    const SizedBox(width: 12),
+                    _buildMediaSourceButton('TikTok', CupertinoIcons.music_note_2),
+                    const SizedBox(width: 12),
+                    _buildMediaSourceButton('Spotify', CupertinoIcons.music_note),
+                    const SizedBox(width: 12),
+                    _buildMediaSourceButton('Apple Music', CupertinoIcons.music_note),
+                    const SizedBox(width: 12),
+                    _buildMediaSourceButton('SoundCloud', CupertinoIcons.music_note),
+                    const SizedBox(width: 12),
+                    _buildMediaSourceButton('Reddit', CupertinoIcons.globe),
+                  ],
+                ),
+              ),
+            ),
+            
+            const SizedBox(height: 20),
+            
+            // Albums section title
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
                 children: [
-                  // Social Media & Content Platforms Row 1
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      _buildBrandMediaIcon('youtube'),
-                      _buildBrandMediaIcon('instagram'),
-                      _buildBrandMediaIcon('tiktok'),
-                      _buildBrandMediaIcon('x'),
-                      _buildBrandMediaIcon('reddit'),
-                    ],
+                  const Text(
+                    'Albums',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                  
-                  const SizedBox(height: 16),
-                  
-                  // Music & Content Platforms Row 2
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      _buildBrandMediaIcon('spotify'),
-                      _buildBrandMediaIcon('apple music'),
-                      _buildBrandMediaIcon('soundcloud'),
-                      _buildBrandMediaIcon('maps'),
-                      _buildBrandMediaIcon('pinterest'),
-                    ],
+                  const Spacer(),
+                  Text(
+                    'see all',
+                    style: TextStyle(
+                      color: Colors.blue,
+                      fontSize: 14,
+                    ),
                   ),
-                  
-                  const SizedBox(height: 16),
-                  
-                  // Additional options row
-                  Row(
-                    children: [
-                      _buildMediaIcon(CupertinoIcons.camera, Colors.grey),
-                      const SizedBox(width: 16),
-                      _buildMediaIcon(CupertinoIcons.photo_on_rectangle, Colors.grey),
-                      const SizedBox(width: 16),
-                      _buildMediaIcon(CupertinoIcons.doc, Colors.grey),
-                      const SizedBox(width: 16),
-                      _buildMediaIcon(CupertinoIcons.link, Colors.blue),
-                      const Spacer(),
-                    ],
-                  ),
-                  
-                  const SizedBox(height: 20),
-                  
-                  // Files section
-                  Row(
-                    children: [
-                      const Text(
-                        'All',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Text(
-                        'see all',
-                        style: TextStyle(
-                          color: Colors.blue,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ],
-                  ),
-                  
-                  const SizedBox(height: 12),
-                  
-                  // File thumbnails
-                  Row(
-                    children: [
-                      _buildFileThumbnail(Colors.blue),
-                      const SizedBox(width: 8),
-                      _buildFileThumbnail(Colors.green),
-                      const SizedBox(width: 8),
-                      _buildFileThumbnail(Colors.grey),
-                      const SizedBox(width: 8),
-                      _buildFileThumbnail(Colors.brown),
-                      const SizedBox(width: 8),
-                      _buildFileThumbnail(Colors.pink),
-                    ],
-                  ),
-                  
-                  const SizedBox(height: 16),
-                  
-                  Row(
-                    children: [
-                      const Text(
-                        'Files',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Text(
-                        'see all',
-                        style: TextStyle(
-                          color: Colors.blue,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ],
-                  ),
-                  
-                  const SizedBox(height: 12),
-                  
-                  // File icons
-                  Row(
-                    children: [
-                      _buildFileIcon(CupertinoIcons.folder, Colors.blue),
-                      const SizedBox(width: 16),
-                      _buildFileIcon(CupertinoIcons.folder, Colors.green),
-                    ],
-                  ),
-                  
-                  const SizedBox(height: 20),
                 ],
               ),
+            ),
+            
+            const SizedBox(height: 12),
+            
+            // Albums Grid - Single row with horizontal scrolling and peeking
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: SizedBox(
+                height: 172, // Slightly increased to fit two text lines cleanly
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: 10, // Number of album cards
+                  itemBuilder: (context, index) {
+                    return Padding(
+                      // 16 between cards, 20 end padding to create home-like peeking
+                      padding: EdgeInsets.only(right: index < 9 ? 16 : 20),
+                      child: _buildAlbumCard('Album ${index + 1}', '${(index + 1) * 5} items', index == 0), // First album gets windows image
+                    );
+                  },
+                ),
+              ),
+            ),
+            
+            const SizedBox(height: 12),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Media source button (circular with brand colors)
+  static Widget _buildMediaSourceButton(String title, IconData icon) {
+    // Define brand colors (soft versions)
+    Color getBrandColor(String brand) {
+      switch (brand.toLowerCase()) {
+        case 'files':
+          return const Color(0xFF007AFF); // Blue
+        case 'audio':
+          return const Color(0xFFFFD700); // Light yellow
+        case 'pinterest':
+          return const Color(0xFFE91E63); // Pink
+        case 'tiktok':
+          return const Color(0xFF00B4D8); // Blue
+        case 'apple music':
+          return const Color(0xFFFF6B6B); // Soft red
+        case 'spotify':
+          return const Color(0xFF1DB954); // Soft green
+        case 'youtube':
+          return const Color(0xFFFF0000); // Soft red
+        case 'reddit':
+          return const Color(0xFFFF4500); // Soft red-orange
+        case 'soundcloud':
+          return const Color(0xFFFF5500); // Soft orange
+        default:
+          return const Color(0xFF3C3C3E); // Default grey
+      }
+    }
+
+    return GestureDetector(
+      onTap: () {
+        print('Media source tapped: $title');
+      },
+      child: Container(
+        width: 60,
+        height: 60,
+        decoration: BoxDecoration(
+          color: getBrandColor(title),
+          borderRadius: BorderRadius.circular(30),
+          border: Border.all(color: const Color(0xFF4C4C4E), width: 1),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              color: Colors.white,
+              size: 20,
+            ),
+            const SizedBox(height: 2),
+            Text(
+              title,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 8,
+                fontWeight: FontWeight.w500,
+                fontFamily: 'SF Pro',
+              ),
+              textAlign: TextAlign.center,
             ),
           ],
         ),
       ),
+    );
+  }
+
+  // Album card (140x140 square with text below)
+  static Widget _buildAlbumCard(String title, String amount, bool useWindowsImage) {
+    return Column(
+      children: [
+        // Image area (140x140 square)
+        Container(
+          width: 140,
+          height: 140,
+          decoration: BoxDecoration(
+            color: const Color(0xFF3C3C3E),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: const Color(0xFF4C4C4E), width: 1),
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: useWindowsImage
+              ? Image.asset(
+                  'media/windows95image.png',
+                  width: double.infinity,
+                  height: double.infinity,
+                  fit: BoxFit.cover,
+                )
+              : Container(
+                  color: Colors.grey.shade800,
+                  child: const Center(
+                    child: Icon(
+                      CupertinoIcons.photo,
+                      color: Colors.white,
+                      size: 32,
+                    ),
+                  ),
+                ),
+          ),
+        ),
+        // Text below the image - compact two lines
+        const SizedBox(height: 4),
+        SizedBox(
+          width: 140,
+          child: Column(
+            children: [
+              Text(
+                title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w500,
+                  fontFamily: 'SF Pro',
+                  height: 1.0,
+                ),
+              ),
+              const SizedBox(height: 1),
+              Text(
+                amount,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: Colors.grey,
+                  fontSize: 8,
+                  fontFamily: 'SF Pro',
+                  height: 1.0,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
@@ -687,18 +781,37 @@ class CustomModals {
     );
   }
 
-  static Widget _buildFormatButton(IconData icon, [double size = 32]) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        color: Colors.grey.shade800,
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Icon(
-        icon,
-        color: Colors.white,
-        size: 16,
+  static Widget _buildFormatButton(String label, IconData icon, bool isPrimary) {
+    return GestureDetector(
+      onTap: () {
+        print('Format button tapped: $label');
+        // TODO: Implement actual formatting logic
+      },
+      child: Container(
+        width: isPrimary ? 40 : 36,
+        height: 36,
+        decoration: BoxDecoration(
+          color: const Color(0xFF3C3C3E),
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(color: const Color(0xFF4C4C4E), width: 1),
+        ),
+        child: Center(
+          child: label.isNotEmpty 
+            ? Text(
+                label,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  fontFamily: 'SF Pro',
+                ),
+              )
+            : Icon(
+                icon,
+                color: Colors.white,
+                size: 18,
+              ),
+        ),
       ),
     );
   }
@@ -1189,6 +1302,435 @@ class CustomModals {
         borderRadius: BorderRadius.circular(6),
       ),
       child: Center(child: icon),
+    );
+  }
+
+  // List dropdown (Bullet, Number, Hyphen) - Long press for options
+  static Widget _buildListDropdown() {
+    return Builder(
+      builder: (context) => GestureDetector(
+        onTap: () {
+          // Default: Bullet list
+          print('Applying bullet list');
+        },
+        onLongPress: () {
+          _showListMenu(context);
+        },
+        child: Container(
+          width: 36,
+          height: 36,
+          decoration: BoxDecoration(
+            color: const Color(0xFF3C3C3E),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: const Color(0xFF4C4C4E), width: 1),
+          ),
+          child: const Icon(
+            CupertinoIcons.list_bullet,
+            color: Colors.white,
+            size: 18,
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Alignment dropdown (Left, Center, Right) - Long press for options
+  static Widget _buildAlignmentDropdown() {
+    return Builder(
+      builder: (context) => GestureDetector(
+        onTap: () {
+          // Default: Center alignment
+          print('Applying center alignment');
+        },
+        onLongPress: () {
+          _showAlignmentMenu(context);
+        },
+        child: Container(
+          width: 36,
+          height: 36,
+          decoration: BoxDecoration(
+            color: const Color(0xFF3C3C3E),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: const Color(0xFF4C4C4E), width: 1),
+          ),
+          child: const Icon(
+            CupertinoIcons.text_aligncenter,
+            color: Colors.white,
+            size: 18,
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Deep link button (Obsidian-style)
+  static Widget _buildDeepLinkButton() {
+    return Builder(
+      builder: (context) => GestureDetector(
+        onTap: () {
+          _showDeepLinkDialog(context);
+        },
+        child: Container(
+          width: 36,
+          height: 36,
+          decoration: BoxDecoration(
+            color: const Color(0xFF3C3C3E),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: const Color(0xFF4C4C4E), width: 1),
+          ),
+          child: const Icon(
+            CupertinoIcons.link,
+            color: Colors.white,
+            size: 18,
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Calendar button with dropdown
+  static Widget _buildCalendarButton() {
+    return Builder(
+      builder: (context) => GestureDetector(
+        onTap: () {
+          _showCalendarPicker(context);
+        },
+        child: Container(
+          width: 36,
+          height: 36,
+          decoration: BoxDecoration(
+            color: const Color(0xFF3C3C3E),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: const Color(0xFF4C4C4E), width: 1),
+          ),
+          child: const Icon(
+            CupertinoIcons.calendar,
+            color: Colors.white,
+            size: 18,
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Show list menu (Number, Hyphen)
+  static void _showListMenu(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: const BoxDecoration(
+          color: Color(0xFF2C2C2E),
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(20),
+            topRight: Radius.circular(20),
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 12),
+            Container(
+              width: 36,
+              height: 5,
+              decoration: BoxDecoration(
+                color: Colors.grey,
+                borderRadius: BorderRadius.circular(2.5),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  _buildListOption('Number', CupertinoIcons.list_number, context),
+                  _buildListOption('Hyphen', CupertinoIcons.list_dash, context),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Show alignment menu (Left, Center, Right)
+  static void _showAlignmentMenu(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: const BoxDecoration(
+          color: Color(0xFF2C2C2E),
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(20),
+            topRight: Radius.circular(20),
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 12),
+            Container(
+              width: 36,
+              height: 5,
+              decoration: BoxDecoration(
+                color: Colors.grey,
+                borderRadius: BorderRadius.circular(2.5),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  _buildAlignmentOption('Left', CupertinoIcons.text_alignleft, context),
+                  _buildAlignmentOption('Center', CupertinoIcons.text_aligncenter, context),
+                  _buildAlignmentOption('Right', CupertinoIcons.text_alignright, context),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Show deep link dialog (Obsidian-style)
+  static void _showDeepLinkDialog(BuildContext context) {
+    final TextEditingController controller = TextEditingController();
+    
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => Container(
+        decoration: const BoxDecoration(
+          color: Color(0xFF2C2C2E),
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(20),
+            topRight: Radius.circular(20),
+          ),
+        ),
+        child: Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+            left: 20,
+            right: 20,
+            top: 20,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Create Deep Link',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
+                  fontFamily: 'SF Pro',
+                ),
+              ),
+              const SizedBox(height: 20),
+              TextField(
+                controller: controller,
+                style: const TextStyle(color: Colors.white),
+                decoration: const InputDecoration(
+                  hintText: 'Enter note title...',
+                  hintStyle: TextStyle(color: Colors.grey),
+                  border: OutlineInputBorder(),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.grey),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.blue),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      final title = controller.text.trim();
+                      if (title.isNotEmpty) {
+                        // TODO: Implement deep link creation
+                        print('Creating deep link: [[$title]]');
+                        Navigator.pop(context);
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                      foregroundColor: Colors.white,
+                    ),
+                    child: const Text('Create'),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Show calendar picker
+  static void _showCalendarPicker(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: const BoxDecoration(
+          color: Color(0xFF2C2C2E),
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(20),
+            topRight: Radius.circular(20),
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 12),
+            Container(
+              width: 36,
+              height: 5,
+              decoration: BoxDecoration(
+                color: Colors.grey,
+                borderRadius: BorderRadius.circular(2.5),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  _buildDateOption('Today', context),
+                  _buildDateOption('Custom', context),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Helper widgets for options
+  static Widget _buildListOption(String title, IconData icon, BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(context).pop();
+        print('Selected list: $title');
+      },
+      child: Container(
+        width: 80,
+        height: 80,
+        decoration: BoxDecoration(
+          color: const Color(0xFF3C3C3E),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: Colors.white, size: 24),
+            const SizedBox(height: 8),
+            Text(
+              title,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 12,
+                fontFamily: 'SF Pro',
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  static Widget _buildAlignmentOption(String title, IconData icon, BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(context).pop();
+        print('Selected alignment: $title');
+      },
+      child: Container(
+        width: 80,
+        height: 80,
+        decoration: BoxDecoration(
+          color: const Color(0xFF3C3C3E),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: Colors.white, size: 24),
+            const SizedBox(height: 8),
+            Text(
+              title,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 12,
+                fontFamily: 'SF Pro',
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  static Widget _buildDateOption(String title, BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(context).pop();
+        if (title == 'Today') {
+          final now = DateTime.now();
+          print('Inserting today\'s date: ${now.toString()}');
+        } else {
+          // TODO: Show date picker
+          print('Show custom date picker');
+        }
+      },
+      child: Container(
+        width: 80,
+        height: 80,
+        decoration: BoxDecoration(
+          color: const Color(0xFF3C3C3E),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              title == 'Today' ? CupertinoIcons.calendar : CupertinoIcons.calendar_badge_plus,
+              color: Colors.white,
+              size: 24,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              title,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 12,
+                fontFamily: 'SF Pro',
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 } 

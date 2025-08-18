@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../viewmodel/note_editor_view_model.dart';
 import 'custom_modals.dart';
 
-class NoteEditorToolbar extends ConsumerWidget {
+class NoteEditorToolbar extends StatelessWidget {
   const NoteEditorToolbar({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     return Container(
       height: 60,
       decoration: const BoxDecoration(
@@ -42,7 +40,7 @@ class NoteEditorToolbar extends ConsumerWidget {
           _buildToolbarIconButton(
             context,
             CupertinoIcons.photo,
-            onTap: () => CustomModals.showPhotoBankModal(context),
+            onTap: () => CustomModals.showMediaModal(context),
           ),
           
           // 5. Carousel button (layout)

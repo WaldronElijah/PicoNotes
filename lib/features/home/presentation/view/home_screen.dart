@@ -89,7 +89,7 @@ class _HomeScreenState extends State<HomeScreen> {
             
             // Bottom spacing for FAB
             SliverToBoxAdapter(
-              child: SizedBox(height: DS.s(context, 60)), // Reduced from 80 to 60 for minimal dead space
+              child: SizedBox(height: DS.s(context, 40)), // Reduced from 60 to 40 for much tighter spacing
             ),
           ],
         ),
@@ -110,7 +110,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Container(
       margin: EdgeInsets.symmetric(
         horizontal: DS.s(context, 20),
-        vertical: DS.s(context, 16), // Reduced from 24 to 16 for tighter vertical spacing
+        vertical: DS.s(context, 8), // Reduced from 16 to 8 for much tighter vertical spacing
       ),
       height: 1,
       decoration: BoxDecoration(
@@ -172,7 +172,7 @@ class _HomeScreenState extends State<HomeScreen> {
   
   Widget _buildNotesCarousel() {
     final hp = DS.s(context, 18);
-    final gap = DS.s(context, 12); // Reduced from 14 to 12 for slightly tighter row spacing
+    final gap = DS.s(context, 8); // Reduced from 12 to 8 for much tighter row spacing
     
     final w = MediaQuery.of(context).size.width;
     final cardW = (w - (hp * 2) - gap) / 2; // 2 columns
@@ -181,7 +181,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final textH = (DS.sp(context, 16) * 1.2)  // title line-height
                  + (DS.sp(context, 14) * 1.2)   // date line-height
                  + DS.s(context, 4)             // between lines
-                 + DS.s(context, 16);           // increased bottom pad from 12 to 16
+                 + DS.s(context, 8);            // reduced bottom pad from 16 to 8 for tighter spacing
     
     final spacing = DS.s(context, 8); // Reduced from 12 to 8 for tighter image-to-text spacing
     final cardH = cardW + spacing + textH;
@@ -415,12 +415,12 @@ class _HomeScreenState extends State<HomeScreen> {
   
   Widget _buildSavedCarousel() {
     final hp = DS.s(context, 18);
-    final gap = DS.s(context, 16);
+    final gap = DS.s(context, 12);
     
     final w = MediaQuery.of(context).size.width;
     final cardW = (w - (hp * 2) - gap) / 2;
     
-    final textH = (DS.sp(context, 16) * 1.2) + (DS.sp(context, 14) * 1.2) + DS.s(context, 4) + DS.s(context, 16);
+    final textH = (DS.sp(context, 16) * 1.2) + (DS.sp(context, 14) * 1.2) + DS.s(context, 4) + DS.s(context, 8);
     final spacing = DS.s(context, 8);
     final cardH = cardW + spacing + textH;
     
@@ -514,12 +514,12 @@ class _HomeScreenState extends State<HomeScreen> {
   
   Widget _buildForkedCarousel() {
     final hp = DS.s(context, 18);
-    final gap = DS.s(context, 16);
+    final gap = DS.s(context, 12);
     
     final w = MediaQuery.of(context).size.width;
     final cardW = (w - (hp * 2) - gap) / 2;
     
-    final textH = (DS.sp(context, 16) * 1.2) + (DS.sp(context, 14) * 1.2) + DS.s(context, 4) + DS.s(context, 16);
+    final textH = (DS.sp(context, 16) * 1.2) + (DS.sp(context, 14) * 1.2) + DS.s(context, 4) + DS.s(context, 8);
     final spacing = DS.s(context, 8);
     final cardH = cardW + spacing + textH;
     
