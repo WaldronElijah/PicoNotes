@@ -15,6 +15,9 @@ class SideDrawer extends ConsumerWidget {
             // Header section
             _buildHeader(),
             
+            // Search bar
+            _buildSearchBar(),
+            
             // Folders section
             Expanded(
               child: Column(
@@ -126,6 +129,49 @@ class SideDrawer extends ConsumerWidget {
     );
   }
 
+  Widget _buildSearchBar() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      decoration: BoxDecoration(
+        color: const Color(0xFF2C2C2E),
+        border: Border(
+          bottom: BorderSide(
+            color: const Color(0xFF3C3C3E),
+            width: 0.5,
+          ),
+        ),
+      ),
+      child: Row(
+        children: [
+          const Icon(
+            CupertinoIcons.search,
+            color: Color(0xFF8E8E93),
+            size: 20,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: TextField(
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontFamily: 'SF Pro Text',
+              ),
+              decoration: InputDecoration(
+                hintText: 'Search notes...',
+                hintStyle: const TextStyle(
+                  color: Color(0xFF8E8E93),
+                  fontSize: 16,
+                  fontFamily: 'SF Pro Text',
+                ),
+                border: InputBorder.none,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildFolderItem({
     required IconData icon,
     required String title,
@@ -203,11 +249,6 @@ class SideDrawer extends ConsumerWidget {
                 icon: CupertinoIcons.arrow_up_arrow_down,
                 label: 'Sort',
                 onTap: () => _showSortOptions(),
-              ),
-              _buildActionButton(
-                icon: CupertinoIcons.search,
-                label: 'Search',
-                onTap: () => _openSearch(),
               ),
               _buildActionButton(
                 icon: CupertinoIcons.eye,
