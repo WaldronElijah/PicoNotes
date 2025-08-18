@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/utils/design_scale.dart';
 import '../../../note_editor/presentation/view/note_editor_screen.dart';
 
@@ -101,36 +102,6 @@ class _HomeScreenState extends State<HomeScreen> {
           color: Colors.white,
           size: 24,
         ),
-      ),
-    );
-  }
-  
-  Widget _buildSearchBar() {
-    return Container(
-      margin: EdgeInsets.symmetric(horizontal: DS.s(context, 20), vertical: DS.s(context, 16)),
-      height: DS.s(context, 36),
-      decoration: BoxDecoration(
-        color: const Color(0xFF2C2C2E),
-        borderRadius: BorderRadius.circular(DS.s(context, 10)),
-      ),
-      child: Row(
-        children: [
-          SizedBox(width: DS.s(context, 12)),
-          Icon(
-            CupertinoIcons.search,
-            color: const Color(0xFF8E8E93),
-            size: DS.s(context, 16),
-          ),
-          SizedBox(width: DS.s(context, 8)),
-          Text(
-            'Search notes...',
-            style: TextStyle(
-              color: const Color(0xFF8E8E93),
-              fontSize: DS.sp(context, 14),
-              fontFamily: 'SF Pro',
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -295,7 +266,7 @@ class _HomeScreenState extends State<HomeScreen> {
           borderRadius: BorderRadius.circular(r),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.2),
+              color: Colors.black.withValues(alpha: 0.2),
               blurRadius: DS.s(context, 8),
               offset: Offset(0, DS.s(context, 4)),
             ),
@@ -331,11 +302,11 @@ class _HomeScreenState extends State<HomeScreen> {
                           gradient: LinearGradient(
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
-                            colors: [
-                              Colors.blue.withOpacity(0.6),
-                              Colors.purple.withOpacity(0.6),
-                              Colors.teal.withOpacity(0.6),
-                            ],
+                                                colors: [
+                      Colors.blue.withValues(alpha: 0.6),
+                      Colors.purple.withValues(alpha: 0.6),
+                      Colors.teal.withValues(alpha: 0.6),
+                    ],
                           ),
                         ),
                         child: Center(
@@ -710,14 +681,7 @@ class _HomeScreenState extends State<HomeScreen> {
     // TODO: Implement folder navigation
   }
   
-  void _showCreateNoteModal() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (context) => const CreateNoteModal(),
-    );
-  }
+
 }
 
 class CreateNoteModal extends StatefulWidget {
