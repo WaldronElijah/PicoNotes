@@ -57,7 +57,7 @@ class _LoginScreenState extends State<LoginScreen> {
       }
       
       // Web flow
-      await Supabase.instance.client.auth.signInWithOAuth(Provider.google);
+      await Supabase.instance.client.auth.signInWithOAuth(OAuthProvider.google);
       
     } catch (e) {
       print('❌ Google Sign-In error: $e');
@@ -93,7 +93,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
       print('🔑 Got tokens, signing in with Supabase...');
       await Supabase.instance.client.auth.signInWithIdToken(
-        provider: Provider.google,
+        provider: OAuthProvider.google,
         idToken: idToken,
         accessToken: accessToken,
       );

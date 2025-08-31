@@ -2,15 +2,15 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-import '../config/env.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class AuthService {
   late final GoogleSignIn _googleSignIn;
 
   AuthService() {
     try {
-      final iosClientId = EnvConfig.googleIosClientId;
-      final webClientId = EnvConfig.googleWebClientId;
+      final iosClientId = dotenv.env['GOOGLE_IOS_CLIENT_ID'];
+      final webClientId = dotenv.env['GOOGLE_WEB_CLIENT_ID'];
       
       print('🔧 Initializing GoogleSignIn with:');
       print('   iOS Client ID: ${iosClientId ?? "NOT SET"}');
@@ -34,30 +34,19 @@ class AuthService {
   }
 
   SupabaseClient get _supabase {
-    if (!EnvConfig.supabaseReady) {
-      throw 'Supabase not initialized';
-    }
     return Supabase.instance.client;
   }
 
   User? get currentUser {
-    if (!EnvConfig.supabaseReady) return null;
     return _supabase.auth.currentUser;
   }
 
   Stream<AuthState> get authStateChanges {
-    if (!EnvConfig.supabaseReady) {
-      return const Stream<AuthState>.empty();
-    }
     return _supabase.auth.onAuthStateChange;
   }
 
   // Sign in with Google using native Google Sign-In
   Future<void> signInWithGoogle() async {
-    if (!EnvConfig.supabaseReady) {
-      throw 'Supabase not initialized';
-    }
-    
     // Ensure we're using native flow on mobile platforms
     if (kIsWeb) {
       throw 'Web platform not supported - use native flow only';
@@ -91,7 +80,7 @@ class AuthService {
 
       print('🚀 Sending tokens to Supabase...');
       await _supabase.auth.signInWithIdToken(
-        provider: Provider.google,
+        provider: OAuthProvider.google,
         idToken: idToken,
         accessToken: accessToken,
       );
@@ -105,14 +94,6 @@ class AuthService {
 
   // Sign out
   Future<void> signOut() async {
-    if (!EnvConfig.supabaseReady) {
-      try {
-        await _googleSignIn.signOut();
-      } catch (e) {
-        print('Warning: Failed to sign out from Google: $e');
-      }
-      return;
-    }
     try {
       await _googleSignIn.signOut();
       await _supabase.auth.signOut();
@@ -126,7 +107,6 @@ class AuthService {
 
   // Get current session
   Session? get currentSession {
-    if (!EnvConfig.supabaseReady) return null;
     return _supabase.auth.currentSession;
   }
 } 

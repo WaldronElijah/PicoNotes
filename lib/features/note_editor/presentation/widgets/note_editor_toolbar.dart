@@ -3,7 +3,26 @@ import 'package:flutter/cupertino.dart';
 import 'custom_modals.dart';
 
 class NoteEditorToolbar extends StatelessWidget {
-  const NoteEditorToolbar({super.key});
+  final VoidCallback? onFormatTap;
+  final VoidCallback? onChecklistTap;
+  final VoidCallback? onTableTap;
+  final VoidCallback? onMediaTap;
+  final VoidCallback? onCarouselTap;
+  final VoidCallback? onStackTap;
+  final VoidCallback? onAITap;
+  final VoidCallback? onCloseTap;
+
+  const NoteEditorToolbar({
+    super.key,
+    this.onFormatTap,
+    this.onChecklistTap,
+    this.onTableTap,
+    this.onMediaTap,
+    this.onCarouselTap,
+    this.onStackTap,
+    this.onAITap,
+    this.onCloseTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -19,56 +38,56 @@ class NoteEditorToolbar extends StatelessWidget {
           _buildToolbarIconButton(
             context,
             CupertinoIcons.textformat,
-            onTap: () => CustomModals.showFormatModal(context),
+            onTap: onFormatTap ?? () => CustomModals.showFormatModal(context),
           ),
           
           // 2. Checklist button
           _buildToolbarIconButton(
             context,
             CupertinoIcons.check_mark_circled,
-            onTap: () => CustomModals.showChecklistModal(context),
+            onTap: onChecklistTap ?? () => CustomModals.showChecklistModal(context),
           ),
           
           // 3. Table button
           _buildToolbarIconButton(
             context,
             CupertinoIcons.table,
-            onTap: () => CustomModals.showTableModal(context),
+            onTap: onTableTap ?? () => CustomModals.showTableModal(context),
           ),
           
           // 4. Photo gallery bank button
           _buildToolbarIconButton(
             context,
             CupertinoIcons.photo,
-            onTap: () => CustomModals.showMediaModal(context),
+            onTap: onMediaTap ?? () => CustomModals.showMediaModal(context),
           ),
           
           // 5. Carousel button (layout)
           _buildToolbarIconButton(
             context,
             CupertinoIcons.plus_rectangle_on_rectangle,
-            onTap: () => CustomModals.showCarouselModal(context),
+            onTap: onCarouselTap ?? () => CustomModals.showCarouselModal(context),
           ),
           
           // 6. Stack button
           _buildToolbarIconButton(
             context,
             CupertinoIcons.rectangle_stack_badge_plus,
-            onTap: () => CustomModals.showStackModal(context),
+            onTap: onStackTap ?? () => CustomModals.showStackModal(context),
           ),
           
           // 7. AI button
           _buildToolbarIconButton(
             context,
             CupertinoIcons.lightbulb,
-            onTap: () => _showBrainModal(context),
+            onTap: onAITap ?? () => _showBrainModal(context),
           ),
           
           // 8. X button (close/dismiss)
           _buildToolbarIconButton(
             context,
             CupertinoIcons.xmark,
-            onTap: () => FocusScope.of(context).unfocus(),
+            onTap: onCloseTap ?? () => FocusScope.of(context).unfocus(),
           ),
         ],
       ),

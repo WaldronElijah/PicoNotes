@@ -5,8 +5,8 @@ class Note {
   final DateTime createdAt;
   final DateTime updatedAt;
   final String userId;
-  final List<String> mediaReferences;
-  final List<String> tags;
+  // final List<String> mediaReferences; // Temporarily commented out
+  // final List<String> tags; // Temporarily commented out
 
   const Note({
     required this.id,
@@ -15,8 +15,8 @@ class Note {
     required this.createdAt,
     required this.updatedAt,
     required this.userId,
-    this.mediaReferences = const [],
-    this.tags = const [],
+    // this.mediaReferences = const [], // Temporarily commented out
+    // this.tags = const [], // Temporarily commented out
   });
 
   Note copyWith({
@@ -26,8 +26,8 @@ class Note {
     DateTime? createdAt,
     DateTime? updatedAt,
     String? userId,
-    List<String>? mediaReferences,
-    List<String>? tags,
+    // List<String>? mediaReferences, // Temporarily commented out
+    // List<String>? tags, // Temporarily commented out
   }) {
     return Note(
       id: id ?? this.id,
@@ -36,8 +36,8 @@ class Note {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       userId: userId ?? this.userId,
-      mediaReferences: mediaReferences ?? this.mediaReferences,
-      tags: tags ?? this.tags,
+      // mediaReferences: mediaReferences ?? this.mediaReferences, // Temporarily commented out
+      // tags: tags ?? this.tags, // Temporarily commented out
     );
   }
 
@@ -49,8 +49,9 @@ class Note {
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
       'user_id': userId,
-      'media_references': mediaReferences,
-      'tags': tags,
+      // Temporarily commented out until we add these columns
+      // 'media_references': mediaReferences,
+      // 'tags': tags,
     };
   }
 
@@ -62,8 +63,9 @@ class Note {
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
       userId: json['user_id'] as String,
-      mediaReferences: List<String>.from(json['media_references'] ?? []),
-      tags: List<String>.from(json['tags'] ?? []),
+      // Temporarily commented out until we add these columns
+      // mediaReferences: List<String>.from(json['media_references'] ?? []),
+      // tags: List<String>.from(json['tags'] ?? []),
     );
   }
 
@@ -71,8 +73,8 @@ class Note {
     required String title,
     required String content,
     required String userId,
-    List<String> mediaReferences = const [],
-    List<String> tags = const [],
+    // List<String> mediaReferences = const [], // Temporarily commented out
+    // List<String> tags = const [], // Temporarily commented out
   }) {
     final now = DateTime.now();
     return Note(
@@ -82,8 +84,8 @@ class Note {
       createdAt: now,
       updatedAt: now,
       userId: userId,
-      mediaReferences: mediaReferences,
-      tags: tags,
+      // mediaReferences: mediaReferences, // Temporarily commented out
+      // tags: tags, // Temporarily commented out
     );
   }
 }

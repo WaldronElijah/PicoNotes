@@ -8,105 +8,171 @@ class _ConnectedButton {
   final String label;
   final IconData icon;
   final bool isPrimary;
+  final VoidCallback? onTap;
+  final bool isActive;
 
-  const _ConnectedButton(this.label, this.icon, this.isPrimary);
+  const _ConnectedButton(this.label, this.icon, this.isPrimary, {this.onTap, this.isActive = false});
 }
 
 class CustomModals {
   // Format Modal - Rich text formatting toolbar
-  static void showFormatModal(BuildContext context) {
+  static void showFormatModal(
+    BuildContext context, {
+    VoidCallback? onBold,
+    VoidCallback? onItalic,
+    VoidCallback? onUnderline,
+    VoidCallback? onStrikethrough,
+    Function(TextAlign)? onTextAlign,
+    Function(String)? onHeading,
+    bool isBold = false,
+    bool isItalic = false,
+    bool isUnderline = false,
+    bool isStrikethrough = false,
+    String currentHeading = 'body',
+  }) {
+    // 🔧 HOISTED state (persists across setModalState)
+    bool localIsBold = isBold;
+    bool localIsItalic = isItalic;
+    bool localIsUnderline = isUnderline;
+    bool localIsStrikethrough = isStrikethrough;
+    String localCurrentHeading = currentHeading;
+
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: false,
-      builder: (context) => Container(
-        decoration: const BoxDecoration(
-          color: Color(0xFF2C2C2E),
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(10),
-            topRight: Radius.circular(10),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setModalState) {
+          return Container(
+          decoration: const BoxDecoration(
+            color: Color(0xFF2C2C2E),
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(10),
+              topRight: Radius.circular(10),
+            ),
           ),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(height: 6),
-            Container(
-              width: 36,
-              height: 5,
-              decoration: BoxDecoration(
-                color: Colors.grey,
-                borderRadius: BorderRadius.circular(2.5),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 6),
+              Container(
+                width: 36,
+                height: 5,
+                decoration: BoxDecoration(
+                  color: Colors.grey,
+                  borderRadius: BorderRadius.circular(2.5),
+                ),
               ),
-            ),
-            const SizedBox(height: 20),
-            
-            // Format type tabs (Apple style)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Row(
-                children: [
-                  _buildFormatTab('Title', true),
-                  const SizedBox(width: 16),
-                  _buildFormatTab('Heading', false),
-                  const SizedBox(width: 16),
-                  _buildFormatTab('Subheading', false),
-                  const SizedBox(width: 16),
-                  _buildFormatTab('Body', false),
-                ],
+              const SizedBox(height: 20),
+              
+                             // Format type tabs (Apple style)
+               Padding(
+                 padding: const EdgeInsets.symmetric(horizontal: 20),
+                 child: Row(
+                   children: [
+                     _buildInteractiveFormatTab('Title', 'title', (type) {
+                       onHeading?.call(type);
+                       setModalState(() {
+                         localCurrentHeading = type;
+                       });
+                     }, localCurrentHeading == 'title', setModalState),
+                     const SizedBox(width: 16),
+                     _buildInteractiveFormatTab('Heading', 'heading', (type) {
+                       onHeading?.call(type);
+                       setModalState(() {
+                         localCurrentHeading = type;
+                       });
+                     }, localCurrentHeading == 'heading', setModalState),
+                     const SizedBox(width: 16),
+                     _buildInteractiveFormatTab('Subheading', 'subheading', (type) {
+                       onHeading?.call(type);
+                       setModalState(() {
+                         localCurrentHeading = type;
+                       });
+                     }, localCurrentHeading == 'subheading', setModalState),
+                     const SizedBox(width: 16),
+                     _buildInteractiveFormatTab('Body', 'body', (type) {
+                       onHeading?.call(type);
+                       setModalState(() {
+                         localCurrentHeading = type;
+                       });
+                     }, localCurrentHeading == 'body', setModalState),
+                   ],
+                 ),
+               ),
+              
+              const SizedBox(height: 20),
+              
+                             // Row 2: Bold, Italic, Underline, Strikethrough (centered and connected)
+               Center(
+                 child: _buildConnectedButtonGroup([
+                   _ConnectedButton('B', CupertinoIcons.bold, true, onTap: () {
+                     onBold?.call();
+                     setModalState(() {
+                       localIsBold = !localIsBold;
+                     });
+                   }, isActive: localIsBold),
+                   _ConnectedButton('I', CupertinoIcons.italic, true, onTap: () {
+                     onItalic?.call();
+                     setModalState(() {
+                       localIsItalic = !localIsItalic;
+                     });
+                   }, isActive: localIsItalic),
+                   _ConnectedButton('U', CupertinoIcons.underline, true, onTap: () {
+                     onUnderline?.call();
+                     setModalState(() {
+                       localIsUnderline = !localIsUnderline;
+                     });
+                   }, isActive: localIsUnderline),
+                   _ConnectedButton('S', CupertinoIcons.strikethrough, true, onTap: () {
+                     onStrikethrough?.call();
+                     setModalState(() {
+                       localIsStrikethrough = !localIsStrikethrough;
+                     });
+                   }, isActive: localIsStrikethrough),
+                 ], isPrimary: true, isWideSpan: true, setModalState: setModalState),
+               ),
+              
+              const SizedBox(height: 20),
+              
+              // Row 3: Advanced Features with Dropdowns and Special Functions
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    // Bullet List Dropdown (hold for Number, Hyphen)
+                    _buildListDropdown(),
+                    
+                    // Center Alignment Dropdown (hold for Left, Center, Right)
+                    _buildAlignmentDropdown(),
+                    
+                    // Deep Link (Obsidian-style)
+                    _buildDeepLinkButton(),
+                    
+                    // Highlight
+                    _buildFormatButton('', CupertinoIcons.paintbrush_fill, false),
+                    
+                    // Text Color (filled circle)
+                    _buildFormatButton('', CupertinoIcons.circle_fill, false),
+                    
+                    // Divider (line with dash under)
+                    _buildFormatButton('', CupertinoIcons.line_horizontal_3, false),
+                    
+                    // Block Note (filled black box)
+                    _buildFormatButton('', CupertinoIcons.square_fill, false),
+                    
+                    // Calendar Dropdown
+                    _buildCalendarButton(),
+                  ],
+                ),
               ),
-            ),
-            
-            const SizedBox(height: 20),
-            
-            // Row 2: Bold, Italic, Underline, Strikethrough (centered and connected)
-            Center(
-              child: _buildConnectedButtonGroup([
-                _ConnectedButton('B', CupertinoIcons.bold, true),
-                _ConnectedButton('I', CupertinoIcons.italic, true),
-                _ConnectedButton('U', CupertinoIcons.underline, true),
-                _ConnectedButton('S', CupertinoIcons.strikethrough, true),
-              ], isPrimary: true, isWideSpan: true),
-            ),
-            
-            const SizedBox(height: 20),
-            
-            // Row 3: Advanced Features with Dropdowns and Special Functions
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  // Bullet List Dropdown (hold for Number, Hyphen)
-                  _buildListDropdown(),
-                  
-                  // Center Alignment Dropdown (hold for Left, Center, Right)
-                  _buildAlignmentDropdown(),
-                  
-                  // Deep Link (Obsidian-style)
-                  _buildDeepLinkButton(),
-                  
-                  // Highlight
-                  _buildFormatButton('', CupertinoIcons.paintbrush_fill, false),
-                  
-                  // Text Color (filled circle)
-                  _buildFormatButton('', CupertinoIcons.circle_fill, false),
-                  
-                  // Divider (line with dash under)
-                  _buildFormatButton('', CupertinoIcons.line_horizontal_3, false),
-                  
-                  // Block Note (filled black box)
-                  _buildFormatButton('', CupertinoIcons.square_fill, false),
-                  
-                  // Calendar Dropdown
-                  _buildCalendarButton(),
-                ],
-              ),
-            ),
-            
-            const SizedBox(height: 20),
-          ],
-        ),
+              
+              const SizedBox(height: 20),
+            ],
+          ),
+        );
+        },
       ),
     );
   }
@@ -116,62 +182,204 @@ class CustomModals {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        decoration: const BoxDecoration(
-          color: Color(0xFF2C2C2E),
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(10),
-            topRight: Radius.circular(10),
-          ),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(height: 12),
-            Container(
-              width: 36,
-              height: 5,
-              decoration: BoxDecoration(
-                color: Colors.grey,
-                borderRadius: BorderRadius.circular(2.5),
+      isScrollControlled: true,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setModalState) {
+          // Local state for checklist items
+          List<Map<String, dynamic>> checklistItems = [
+            {'text': 'Sample checklist item', 'completed': false, 'id': DateTime.now().millisecondsSinceEpoch.toString()},
+          ];
+          
+          return Container(
+            decoration: const BoxDecoration(
+              color: Color(0xFF2C2C2E),
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(10),
+                topRight: Radius.circular(10),
               ),
             ),
-            const SizedBox(height: 20),
-            
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: _buildChecklistOption(
-                      'checklist',
-                      CupertinoIcons.check_mark_circled,
-                      context,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox(height: 12),
+                Container(
+                  width: 36,
+                  height: 5,
+                  decoration: BoxDecoration(
+                    color: Colors.grey,
+                    borderRadius: BorderRadius.circular(2.5),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                
+                // Title
+                const Text(
+                  'Checklist',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    fontFamily: 'SF Pro Text',
+                  ),
+                ),
+                const SizedBox(height: 20),
+                
+                // Checklist items
+                Container(
+                  constraints: const BoxConstraints(maxHeight: 300),
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: checklistItems.length,
+                    itemBuilder: (context, index) {
+                      final item = checklistItems[index];
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                        child: Row(
+                          children: [
+                            // Checkbox
+                            GestureDetector(
+                              onTap: () {
+                                setModalState(() {
+                                  item['completed'] = !item['completed'];
+                                });
+                              },
+                              child: Container(
+                                width: 24,
+                                height: 24,
+                                decoration: BoxDecoration(
+                                  color: item['completed'] ? const Color(0xFF3375F8) : Colors.transparent,
+                                  border: Border.all(
+                                    color: item['completed'] ? const Color(0xFF3375F8) : Colors.grey,
+                                    width: 2,
+                                  ),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: item['completed']
+                                    ? const Icon(
+                                        CupertinoIcons.check_mark,
+                                        color: Colors.white,
+                                        size: 16,
+                                      )
+                                    : null,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            
+                            // Text input
+                            Expanded(
+                              child: TextField(
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  decoration: item['completed'] ? TextDecoration.lineThrough : null,
+                                ),
+                                decoration: const InputDecoration(
+                                  border: InputBorder.none,
+                                  hintText: 'Checklist item',
+                                  hintStyle: TextStyle(color: Color(0xFF8E8E93)),
+                                ),
+                                onChanged: (value) {
+                                  item['text'] = value;
+                                },
+                              ),
+                            ),
+                            
+                            // Delete button
+                            if (checklistItems.length > 1)
+                              GestureDetector(
+                                onTap: () {
+                                  setModalState(() {
+                                    checklistItems.removeAt(index);
+                                  });
+                                },
+                                child: const Icon(
+                                  CupertinoIcons.xmark_circle_fill,
+                                  color: Color(0xFFFF3B30),
+                                  size: 20,
+                                ),
+                              ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                
+                const SizedBox(height: 20),
+                
+                // Add new item button
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () {
+                            setModalState(() {
+                              checklistItems.add({
+                                'text': '',
+                                'completed': false,
+                                'id': DateTime.now().millisecondsSinceEpoch.toString(),
+                              });
+                            });
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF3375F8),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          child: const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(CupertinoIcons.plus, size: 16),
+                              SizedBox(width: 8),
+                              Text('Add Item'),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                
+                const SizedBox(height: 20),
+                
+                // Insert button
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        // TODO: Insert checklist into note
+                        Navigator.of(context).pop();
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF34C759),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: const Text(
+                        'Insert Checklist',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _buildChecklistOption(
-                      'consistency\ntracker list',
-                      CupertinoIcons.square_grid_3x2,
-                      context,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _buildChecklistOption(
-                      'progress\ntracker list',
-                      CupertinoIcons.star,
-                      context,
-                    ),
-                  ),
-                ],
-              ),
+                ),
+                
+                const SizedBox(height: 20),
+              ],
             ),
-            
-            const SizedBox(height: 20),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
@@ -181,54 +389,266 @@ class CustomModals {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        decoration: const BoxDecoration(
-          color: Color(0xFF2C2C2E),
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(10),
-            topRight: Radius.circular(10),
-          ),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(height: 12),
-            Container(
-              width: 36,
-              height: 5,
-              decoration: BoxDecoration(
-                color: Colors.grey,
-                borderRadius: BorderRadius.circular(2.5),
+      isScrollControlled: true,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setModalState) {
+          int rows = 3;
+          int columns = 3;
+          
+          return Container(
+            decoration: const BoxDecoration(
+              color: Color(0xFF2C2C2E),
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(10),
+                topRight: Radius.circular(10),
               ),
             ),
-            const SizedBox(height: 20),
-            
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: _buildTableOption(
-                      'table',
-                      CupertinoIcons.table,
-                      context,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox(height: 12),
+                Container(
+                  width: 36,
+                  height: 5,
+                  decoration: BoxDecoration(
+                    color: Colors.grey,
+                    borderRadius: BorderRadius.circular(2.5),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                
+                // Title
+                const Text(
+                  'Create Table',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    fontFamily: 'SF Pro Text',
+                  ),
+                ),
+                const SizedBox(height: 20),
+                
+                // Table dimensions
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Rows',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Row(
+                              children: [
+                                IconButton(
+                                  onPressed: () {
+                                    if (rows > 1) {
+                                      setModalState(() {
+                                        rows--;
+                                      });
+                                    }
+                                  },
+                                  icon: const Icon(
+                                    CupertinoIcons.minus_circle_fill,
+                                    color: Color(0xFFFF3B30),
+                                    size: 24,
+                                  ),
+                                ),
+                                Container(
+                                  width: 50,
+                                  padding: const EdgeInsets.symmetric(vertical: 8),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF1C1C1E),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Text(
+                                    '$rows',
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                                IconButton(
+                                  onPressed: () {
+                                    if (rows < 10) {
+                                      setModalState(() {
+                                        rows++;
+                                      });
+                                    }
+                                  },
+                                  icon: const Icon(
+                                    CupertinoIcons.plus_circle_fill,
+                                    color: Color(0xFF34C759),
+                                    size: 24,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      
+                      const SizedBox(width: 20),
+                      
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Columns',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Row(
+                              children: [
+                                IconButton(
+                                  onPressed: () {
+                                    if (columns > 1) {
+                                      setModalState(() {
+                                        columns--;
+                                      });
+                                    }
+                                  },
+                                  icon: const Icon(
+                                    CupertinoIcons.minus_circle_fill,
+                                    color: Color(0xFFFF3B30),
+                                    size: 24,
+                                  ),
+                                ),
+                                Container(
+                                  width: 50,
+                                  padding: const EdgeInsets.symmetric(vertical: 8),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF1C1C1E),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Text(
+                                    '$columns',
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                                IconButton(
+                                  onPressed: () {
+                                    if (columns < 8) {
+                                      setModalState(() {
+                                        columns++;
+                                      });
+                                    }
+                                  },
+                                  icon: const Icon(
+                                    CupertinoIcons.plus_circle_fill,
+                                    color: Color(0xFF34C759),
+                                    size: 24,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                
+                const SizedBox(height: 20),
+                
+                // Table preview
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1C1C1E),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: const Color(0xFF3C3C3E)),
+                    ),
+                    child: Column(
+                      children: List.generate(rows, (rowIndex) {
+                        return Row(
+                          children: List.generate(columns, (colIndex) {
+                            return Expanded(
+                              child: Container(
+                                height: 40,
+                                margin: const EdgeInsets.all(1),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF2C2C2E),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: const Center(
+                                  child: Text(
+                                    'Cell',
+                                    style: TextStyle(
+                                      color: Color(0xFF8E8E93),
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          }),
+                        );
+                      }),
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _buildTableOption(
-                      'line table',
-                      CupertinoIcons.line_horizontal_3,
-                      context,
+                ),
+                
+                const SizedBox(height: 20),
+                
+                // Insert button
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        // TODO: Insert table into note
+                        Navigator.of(context).pop();
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF34C759),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: const Text(
+                        'Insert Table',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                     ),
                   ),
-                ],
-              ),
+                ),
+                
+                const SizedBox(height: 20),
+              ],
             ),
-            
-            const SizedBox(height: 20),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
@@ -763,6 +1183,35 @@ class CustomModals {
   }
 
   // Helper widgets
+  static Widget _buildInteractiveFormatTab(String text, String type, Function(String)? onHeading, bool isActive, StateSetter setModalState) {
+    return Builder(
+      builder: (context) => GestureDetector(
+        onTap: () {
+          HapticFeedback.lightImpact();
+          onHeading?.call(type);
+          // Don't close modal, just update the state
+          setModalState(() {});
+        },
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: isActive ? Colors.white : Colors.transparent,
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: Text(
+            text,
+            style: TextStyle(
+              color: isActive ? Colors.black : Colors.white,
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   static Widget _buildFormatTab(String text, bool isSelected) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -1002,7 +1451,7 @@ class CustomModals {
   }
 
   // Connected button group (Apple segmented control style)
-  static Widget _buildConnectedButtonGroup(List<_ConnectedButton> buttons, {bool isPrimary = false, bool isWideSpan = false}) {
+  static Widget _buildConnectedButtonGroup(List<_ConnectedButton> buttons, {bool isPrimary = false, bool isWideSpan = false, StateSetter? setModalState}) {
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8),
@@ -1022,6 +1471,7 @@ class CustomModals {
             isLast: isLast,
             isPrimary: isPrimary,
             isWideSpan: isWideSpan,
+            setModalState: setModalState,
           );
         }).toList(),
       ),
@@ -1034,6 +1484,7 @@ class CustomModals {
     required bool isLast,
     required bool isPrimary,
     bool isWideSpan = false,
+    StateSetter? setModalState,
   }) {
     // Calculate button width based on type and span
     double buttonWidth;
@@ -1045,15 +1496,34 @@ class CustomModals {
       buttonWidth = 40; // Secondary buttons
     }
     
-    return GestureDetector(
-      onTap: () {
-        print('Connected button tapped: ${button.label.isNotEmpty ? button.label : button.icon}');
-      },
-      child: Container(
+    return StatefulBuilder(
+      builder: (context, setState) {
+        bool isPressed = false;
+        
+        return GestureDetector(
+          onTapDown: (_) {
+            setState(() => isPressed = true);
+            HapticFeedback.lightImpact();
+          },
+          onTapUp: (_) {
+            setState(() => isPressed = false);
+            button.onTap?.call();
+            // Trigger modal rebuild to show updated state
+            setModalState?.call(() {});
+          },
+          onTapCancel: () {
+            setState(() => isPressed = false);
+          },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
         width: buttonWidth,
         height: isPrimary ? 44 : 36,
         decoration: BoxDecoration(
-          color: const Color(0xFF3C3C3E),
+          color: isPressed 
+            ? const Color(0xFF2C2C2E) 
+            : button.isActive 
+              ? const Color(0xFF007AFF) 
+              : const Color(0xFF3C3C3E),
           borderRadius: BorderRadius.only(
             topLeft: Radius.circular(isFirst ? 7 : 0),
             bottomLeft: Radius.circular(isFirst ? 7 : 0),
@@ -1071,8 +1541,8 @@ class CustomModals {
           child: button.isPrimary && button.label.isNotEmpty
               ? Text(
                   button.label,
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: button.isActive ? Colors.white : Colors.white,
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
                     fontFamily: 'SF Pro Text',
@@ -1080,11 +1550,13 @@ class CustomModals {
                 )
               : Icon(
                   button.icon,
-                  color: Colors.white,
+                  color: button.isActive ? Colors.white : Colors.white,
                   size: isPrimary ? 20 : 16,
                 ),
         ),
       ),
+    );
+      },
     );
   }
 

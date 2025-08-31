@@ -49,7 +49,7 @@ class _HomeScreenState extends State<HomeScreen> {
         child: CustomScrollView(
           controller: _scrollController,
           slivers: [
-            // Notes Section with Carousel
+            // Recent Section (2x2) - at top
             SliverToBoxAdapter(
               child: Column(
                 children: [
@@ -72,17 +72,22 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
 
-            // Saved Section
-            SliverToBoxAdapter(
-              child: _buildSavedSection(),
-            ),
-            
-            // Forked Section
+            // Forked Section (1x1) - second
             SliverToBoxAdapter(
               child: _buildForkedSection(),
             ),
             
-            // Folders Section
+            // Shared Section (1x1) - new section
+            SliverToBoxAdapter(
+              child: _buildSharedSection(),
+            ),
+            
+            // Saved Section (1x1) - fourth
+            SliverToBoxAdapter(
+              child: _buildSavedSection(),
+            ),
+            
+            // Folders Section - at bottom (unchanged)
             SliverToBoxAdapter(
               child: _buildFoldersSection(),
             ),
@@ -512,6 +517,56 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
   
+  Widget _buildSharedSection() {
+    return Column(
+      children: [
+        // Section header positioned over the previews
+        Container(
+          padding: EdgeInsets.only(
+            left: DS.s(context, 32), // Increased from 20 to 32 to push title further right
+            bottom: DS.s(context, 16),
+          ),
+          child: Row(
+            children: [
+              Text(
+                'Shared',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: DS.sp(context, 22),
+                  fontWeight: FontWeight.w600,
+                  fontFamily: 'SF Pro',
+                ),
+              ),
+              const Spacer(),
+              TextButton(
+                onPressed: () {
+                  // TODO: Implement see all functionality
+                },
+                child: Text(
+                  'see all',
+                  style: TextStyle(
+                    color: const Color(0xFF3375F8), // Blue color
+                    fontSize: DS.sp(context, 16),
+                    fontFamily: 'SF Pro',
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        
+        // Shared items carousel with peeking
+        Container(
+          padding: EdgeInsets.symmetric(horizontal: DS.s(context, 20)),
+          child: _buildSharedCarousel(),
+        ),
+        
+        // Section separator
+        _buildSectionSeparator(),
+      ],
+    );
+  }
+  
   Widget _buildForkedCarousel() {
     final hp = DS.s(context, 18);
     final gap = DS.s(context, 12);
@@ -534,6 +589,55 @@ class _HomeScreenState extends State<HomeScreen> {
         itemBuilder: (context, pageIndex) {
           final startIndex = pageIndex * 2;
           final titles = ['Forked Note 1', 'Forked Note 2', 'Forked Note 3', 'Forked Note 4'];
+          final dates = ['August 30, 2025', 'August 30, 2025', 'August 30, 2025', 'August 30, 2025'];
+          
+          return Container(
+            padding: EdgeInsets.symmetric(horizontal: DS.s(context, 8)),
+            child: Row(
+              children: [
+                Expanded(
+                  child: _buildNoteCard(
+                    startIndex < titles.length ? titles[startIndex] : 'Empty',
+                    startIndex < dates.length ? dates[startIndex] : 'No date',
+                  ),
+                ),
+                SizedBox(width: gap),
+                Expanded(
+                  child: _buildNoteCard(
+                    startIndex + 1 < titles.length ? titles[startIndex + 1] : 'Empty',
+                    startIndex + 1 < dates.length ? dates[startIndex + 1] : 'No date',
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+  
+  Widget _buildSharedCarousel() {
+    final hp = DS.s(context, 18);
+    final gap = DS.s(context, 12);
+    
+    final w = MediaQuery.of(context).size.width;
+    final cardW = (w - (hp * 2) - gap) / 2;
+    
+    final textH = (DS.sp(context, 16) * 1.2) + (DS.sp(context, 14) * 1.2) + DS.s(context, 4) + DS.s(context, 8);
+    final spacing = DS.s(context, 8);
+    final cardH = cardW + spacing + textH;
+    
+    return SizedBox(
+      height: cardH,
+      child: PageView.builder(
+        itemCount: 2, // 2 pages for shared items
+        padEnds: false,
+        controller: PageController(
+          viewportFraction: 0.95, // 5% peeking effect
+        ),
+        itemBuilder: (context, pageIndex) {
+          final startIndex = pageIndex * 2;
+          final titles = ['Shared Note 1', 'Shared Note 2', 'Shared Note 3', 'Shared Note 4'];
           final dates = ['August 30, 2025', 'August 30, 2025', 'August 30, 2025', 'August 30, 2025'];
           
           return Container(
