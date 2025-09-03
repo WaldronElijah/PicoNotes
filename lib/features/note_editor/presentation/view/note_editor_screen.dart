@@ -31,6 +31,13 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
   TextAlign _textAlign = TextAlign.left;
   String _currentHeading = 'body'; // 'title', 'heading', 'subheading', 'body'
 
+  // Helper to unset attributes in flutter_quill 11.4.2
+  Attribute _unset(Attribute a) {
+    // In 11.x Attribute has a public constructor (key, scope, value)
+    // Setting value=null unsets it
+    return Attribute(a.key, a.scope, null);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -46,6 +53,8 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
         _showToolbar = _focusNode.hasFocus;
       });
     });
+    
+    // Button states will be initialized by _onQuillChanged
   }
 
   @override
@@ -58,57 +67,92 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
 
   // Quill change listener to update button states
   void _onQuillChanged() {
-    // For now, we'll just listen to changes but not try to detect current formatting
-    // The button states will be updated when users click the formatting buttons
+    final style = _quillController.getSelectionStyle(); // Style
+    final attrs = style.attributes;
+
+    setState(() {
+      _isBold         = attrs.containsKey(Attribute.bold.key);
+      _isItalic       = attrs.containsKey(Attribute.italic.key);
+      _isUnderline    = attrs.containsKey(Attribute.underline.key);
+      _isStrikethrough= attrs.containsKey(Attribute.strikeThrough.key);
+
+      // Heading state
+      if (attrs.containsKey(Attribute.header.key)) {
+        final h = attrs[Attribute.header.key]!.value;
+        _currentHeading = switch (h) {
+          1 => 'heading',
+          2 => 'subheading',
+          _ => 'body',
+        };
+      } else {
+        _currentHeading = 'body';
+      }
+
+      // Alignment state (optional UI sync)
+      if (attrs.containsKey(Attribute.align.key)) {
+        final a = attrs[Attribute.align.key]!.value;
+        _textAlign = switch (a) {
+          'center'  => TextAlign.center,
+          'right'   => TextAlign.right,
+          'justify' => TextAlign.justify,
+          _         => TextAlign.left,
+        };
+      } else {
+        _textAlign = TextAlign.left;
+      }
+    });
   }
 
-  // Text formatting methods - now using REAL Quill formatting
+
+
+
+
+  // Proper formatting toggles for flutter_quill 11.4.2
   void _toggleBold() {
-    final selection = _quillController.selection;
-    if (selection.isCollapsed) return;
-    
-    // Apply REAL bold formatting
-    _quillController.formatSelection(Attribute.bold);
-    
-    setState(() {
-      _isBold = !_isBold;
-    });
+    final sel = _quillController.selection;
+    if (!sel.isValid) return;
+
+    final attrs = _quillController.getSelectionStyle().attributes;
+    final isOn = attrs.containsKey(Attribute.bold.key);
+
+    _quillController.formatSelection(isOn ? _unset(Attribute.bold) : Attribute.bold);
   }
 
   void _toggleItalic() {
-    final selection = _quillController.selection;
-    if (selection.isCollapsed) return;
-    
-    // Apply REAL italic formatting
-    _quillController.formatSelection(Attribute.italic);
-    
-    setState(() {
-      _isItalic = !_isItalic;
-    });
+    final sel = _quillController.selection;
+    if (!sel.isValid) return;
+
+    final attrs = _quillController.getSelectionStyle().attributes;
+    final isOn = attrs.containsKey(Attribute.italic.key);
+
+    _quillController.formatSelection(isOn ? _unset(Attribute.italic) : Attribute.italic);
   }
 
   void _toggleUnderline() {
-    final selection = _quillController.selection;
-    if (selection.isCollapsed) return;
-    
-    // Apply REAL underline formatting
-    _quillController.formatSelection(Attribute.underline);
-    
-    setState(() {
-      _isUnderline = !_isUnderline;
-    });
+    final sel = _quillController.selection;
+    if (!sel.isValid) return;
+
+    final attrs = _quillController.getSelectionStyle().attributes;
+    final isOn = attrs.containsKey(Attribute.underline.key);
+
+    _quillController.formatSelection(isOn ? _unset(Attribute.underline) : Attribute.underline);
   }
 
   void _toggleStrikethrough() {
-    final selection = _quillController.selection;
-    if (selection.isCollapsed) return;
-    
-    // Apply REAL strikethrough formatting
-    _quillController.formatSelection(Attribute.strikeThrough);
-    
-    setState(() {
-      _isStrikethrough = !_isStrikethrough;
-    });
+    final sel = _quillController.selection;
+    if (!sel.isValid) return;
+
+    final attrs = _quillController.getSelectionStyle().attributes;
+    final isOn = attrs.containsKey(Attribute.strikeThrough.key);
+
+    try {
+      _quillController.formatSelection(isOn ? _unset(Attribute.strikeThrough) : Attribute.strikeThrough);
+    } catch (e) {
+      // If strikeThrough is not supported, just toggle the button state
+      setState(() {
+        _isStrikethrough = !_isStrikethrough;
+      });
+    }
   }
 
   // Media insertion methods
@@ -216,66 +260,34 @@ Multiple images in vertical stack
   }
 
   void _setTextAlign(TextAlign alignment) {
-    // Apply text alignment to the current selection
-    final selection = _quillController.selection;
-    if (selection.isCollapsed) return;
-    
-    // Convert TextAlign to Quill attribute
-    Attribute? alignAttribute;
-    switch (alignment) {
-      case TextAlign.left:
-        alignAttribute = Attribute.align;
-        break;
-      case TextAlign.center:
-        alignAttribute = Attribute.align;
-        break;
-      case TextAlign.right:
-        alignAttribute = Attribute.align;
-        break;
-      case TextAlign.justify:
-        alignAttribute = Attribute.align;
-        break;
-      default:
-        alignAttribute = Attribute.align;
-    }
-    
-    // Apply alignment (simplified for now)
-    _quillController.formatSelection(alignAttribute);
-    
-    setState(() {
-      _textAlign = alignment;
-    });
+    final sel = _quillController.selection;
+    if (!sel.isValid) return;
+
+    final attr = switch (alignment) {
+      TextAlign.center  => Attribute.centerAlignment,
+      TextAlign.right   => Attribute.rightAlignment,
+      TextAlign.justify => Attribute.justifyAlignment,
+      _                 => Attribute.leftAlignment,
+    };
+    _quillController.formatSelection(attr);
+    setState(() => _textAlign = alignment);
   }
 
   void _setHeading(String headingType) {
-    // Apply heading formatting to the current selection
-    final selection = _quillController.selection;
-    if (selection.isCollapsed) return;
-    
-    // Convert heading type to Quill attribute
-    Attribute? headingAttribute;
-    switch (headingType) {
-      case 'title':
-        headingAttribute = Attribute.header;
-        break;
-      case 'heading':
-        headingAttribute = Attribute.header;
-        break;
-      case 'subheading':
-        headingAttribute = Attribute.header;
-        break;
-      case 'body':
-      default:
-        headingAttribute = Attribute.header;
-        break;
+    final sel = _quillController.selection;
+    if (!sel.isValid) return;
+
+    if (headingType == 'body') {
+      _quillController.formatSelection(_unset(Attribute.header)); // remove header
+    } else if (headingType == 'heading') {
+      _quillController.formatSelection(Attribute(Attribute.header.key, Attribute.header.scope, 1)); // H1
+    } else if (headingType == 'subheading') {
+      _quillController.formatSelection(Attribute(Attribute.header.key, Attribute.header.scope, 2)); // H2
+    } else {
+      _quillController.formatSelection(_unset(Attribute.header));
     }
-    
-    // Apply heading
-    _quillController.formatSelection(headingAttribute);
-    
-    setState(() {
-      _currentHeading = headingType;
-    });
+
+    setState(() => _currentHeading = headingType);
   }
 
 
