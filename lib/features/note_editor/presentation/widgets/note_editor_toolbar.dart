@@ -38,7 +38,20 @@ class NoteEditorToolbar extends StatelessWidget {
           _buildToolbarIconButton(
             context,
             CupertinoIcons.textformat,
-            onTap: onFormatTap ?? () => CustomModals.showFormatModal(context),
+            onTap: onFormatTap ?? () => CustomModals.showFormatModal(
+              context,
+              onBold: null,
+              onItalic: null,
+              onUnderline: null,
+              onStrikethrough: null,
+              onTextAlign: null,
+              onHeading: null,
+              onBulletList: null,
+              onNumberedList: null,
+              onDashList: null,
+              onIndentLeft: null,
+              onIndentRight: null,
+            ),
           ),
           
           // 2. Checklist button
@@ -76,12 +89,12 @@ class NoteEditorToolbar extends StatelessWidget {
             onTap: onStackTap ?? () => CustomModals.showStackModal(context),
           ),
           
-          // 7. AI button
-          _buildToolbarIconButton(
-            context,
-            CupertinoIcons.lightbulb,
-            onTap: onAITap ?? () => _showBrainModal(context),
-          ),
+          // 7. AI button (commented out for later version)
+          // _buildToolbarIconButton(
+          //   context,
+          //   CupertinoIcons.lightbulb,
+          //   onTap: onAITap ?? () => _showBrainModal(context),
+          // ),
           
           // 8. X button (close/dismiss)
           _buildToolbarIconButton(

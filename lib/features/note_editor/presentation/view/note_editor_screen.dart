@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import '../widgets/note_editor_toolbar.dart';
@@ -6,6 +7,7 @@ import '../widgets/note_editor_header.dart';
 import '../widgets/custom_modals.dart';
 import '../../data/repository/note_repository.dart';
 import '../../data/models/note.dart';
+import '../../../../core/theme/theme_provider.dart';
 
 class NoteEditorScreen extends StatefulWidget {
   const NoteEditorScreen({super.key});
@@ -17,7 +19,7 @@ class NoteEditorScreen extends StatefulWidget {
 class _NoteEditorScreenState extends State<NoteEditorScreen> {
   final FocusNode _focusNode = FocusNode();
   final TextEditingController _titleController = TextEditingController();
-  late QuillController _quillController;
+  late QuillController _quillController = QuillController.basic();
   bool _showToolbar = false;
   bool _isSaving = false;
   final DateTime _createdAt = DateTime.now();
@@ -42,9 +44,6 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
   void initState() {
     super.initState();
     
-    // Initialize QuillController with empty document
-    _quillController = QuillController.basic();
-    
     // Listen to Quill changes to update button states
     _quillController.addListener(_onQuillChanged);
     
@@ -54,7 +53,15 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
       });
     });
     
-    // Button states will be initialized by _onQuillChanged
+    // Force body on first line
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _quillController.updateSelection(
+        const TextSelection.collapsed(offset: 0),
+        ChangeSource.local,
+      );
+      _quillController.formatSelection(_unset(Attribute.header));
+      setState(() => _currentHeading = 'body');
+    });
   }
 
   @override
@@ -69,24 +76,28 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
   void _onQuillChanged() {
     final style = _quillController.getSelectionStyle(); // Style
     final attrs = style.attributes;
-
+    
     setState(() {
       _isBold         = attrs.containsKey(Attribute.bold.key);
       _isItalic       = attrs.containsKey(Attribute.italic.key);
       _isUnderline    = attrs.containsKey(Attribute.underline.key);
       _isStrikethrough= attrs.containsKey(Attribute.strikeThrough.key);
 
-      // Heading state
+      // Heading state (map 1→title, 2→heading, 3→subheading)
       if (attrs.containsKey(Attribute.header.key)) {
         final h = attrs[Attribute.header.key]!.value;
         _currentHeading = switch (h) {
-          1 => 'heading',
-          2 => 'subheading',
+          1 => 'title',
+          2 => 'heading',
+          3 => 'subheading',
           _ => 'body',
         };
+        debugPrint('header attr: $h');
       } else {
         _currentHeading = 'body';
+        debugPrint('header attr: null');
       }
+      debugPrint('currentHeading: $_currentHeading');
 
       // Alignment state (optional UI sync)
       if (attrs.containsKey(Attribute.align.key)) {
@@ -103,10 +114,6 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
     });
   }
 
-
-
-
-
   // Proper formatting toggles for flutter_quill 11.4.2
   void _toggleBold() {
     final sel = _quillController.selection;
@@ -121,10 +128,10 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
   void _toggleItalic() {
     final sel = _quillController.selection;
     if (!sel.isValid) return;
-
+    
     final attrs = _quillController.getSelectionStyle().attributes;
     final isOn = attrs.containsKey(Attribute.italic.key);
-
+    
     _quillController.formatSelection(isOn ? _unset(Attribute.italic) : Attribute.italic);
   }
 
@@ -277,20 +284,113 @@ Multiple images in vertical stack
     final sel = _quillController.selection;
     if (!sel.isValid) return;
 
-    if (headingType == 'body') {
-      _quillController.formatSelection(_unset(Attribute.header)); // remove header
-    } else if (headingType == 'heading') {
-      _quillController.formatSelection(Attribute(Attribute.header.key, Attribute.header.scope, 1)); // H1
-    } else if (headingType == 'subheading') {
-      _quillController.formatSelection(Attribute(Attribute.header.key, Attribute.header.scope, 2)); // H2
-    } else {
-      _quillController.formatSelection(_unset(Attribute.header));
+    switch (headingType) {
+      case 'title':
+        _quillController.formatSelection(
+          Attribute(Attribute.header.key, Attribute.header.scope, 1),
+        );
+        break;
+      case 'heading':
+        _quillController.formatSelection(
+          Attribute(Attribute.header.key, Attribute.header.scope, 2),
+        );
+        break;
+      case 'subheading':
+        _quillController.formatSelection(
+          Attribute(Attribute.header.key, Attribute.header.scope, 3),
+        );
+        break;
+      case 'body':
+      default:
+        _quillController.formatSelection(_unset(Attribute.header));
     }
 
     setState(() => _currentHeading = headingType);
   }
 
+  // List formatting methods
+  void _toggleBulletList() {
+    print('Bullet list button tapped!');
+    final sel = _quillController.selection;
+    if (!sel.isValid) {
+      print('Selection not valid');
+      return;
+    }
 
+    final attrs = _quillController.getSelectionStyle().attributes;
+    final current = attrs[Attribute.list.key];
+
+    print('Current list type: $current');
+
+    if (current == Attribute.ul) {
+      _quillController.formatSelection(_unset(Attribute.list));
+      print('Removed bullet list');
+    } else {
+      _quillController.formatSelection(Attribute.ul);
+      print('Added bullet list');
+    }
+  }
+
+  void _toggleNumberedList() {
+    print('Numbered list button tapped!');
+    final sel = _quillController.selection;
+    if (!sel.isValid) {
+      print('Selection not valid');
+      return;
+    }
+
+    final attrs = _quillController.getSelectionStyle().attributes;
+    final current = attrs[Attribute.list.key];
+
+    print('Current list type: $current');
+
+    if (current == Attribute.ol) {
+      _quillController.formatSelection(_unset(Attribute.list));
+      print('Removed numbered list');
+    } else {
+      _quillController.formatSelection(Attribute.ol);
+      print('Added numbered list');
+    }
+  }
+
+  void _toggleDashList() {
+    print('Dash list button tapped!');
+    final sel = _quillController.selection;
+    if (!sel.isValid) {
+      print('Selection not valid');
+      return;
+    }
+
+    final attrs = _quillController.getSelectionStyle().attributes;
+    final current = attrs[Attribute.list.key];
+
+    print('Current list type: $current');
+
+    if (current == Attribute.ul) {
+      _quillController.formatSelection(_unset(Attribute.list));
+      print('Removed dash list');
+    } else {
+      _quillController.formatSelection(Attribute.ul);
+      print('Added dash list');
+    }
+  }
+
+  // Indent methods
+  void _setIndentLeft() {
+    final sel = _quillController.selection;
+    if (!sel.isValid) return;
+
+    // TODO: Implement indent left functionality
+    print('Indent left tapped');
+  }
+
+  void _setIndentRight() {
+    final sel = _quillController.selection;
+    if (!sel.isValid) return;
+
+    // TODO: Implement indent right functionality
+    print('Indent right tapped');
+  }
 
   Future<void> _saveNote() async {
     // Get plain text content from Quill
@@ -351,7 +451,7 @@ Multiple images in vertical stack
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: Column(
           children: [
@@ -366,7 +466,7 @@ Multiple images in vertical stack
               child: Container(
                 margin: const EdgeInsets.symmetric(horizontal: 16),
                 decoration: BoxDecoration(
-                  color: Colors.black,
+                  color: Theme.of(context).scaffoldBackgroundColor,
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Column(
@@ -379,19 +479,12 @@ Multiple images in vertical stack
                           TextField(
                             controller: _titleController,
                             textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 24,
-                              fontWeight: FontWeight.w900,
-                              fontFamily: 'SF Pro Text',
-                            ),
-                            decoration: const InputDecoration(
+                            style: Theme.of(context).textTheme.headlineLarge,
+                            decoration: InputDecoration(
                               border: InputBorder.none,
                               hintText: 'New Note',
-                              hintStyle: TextStyle(
-                                color: Colors.white,
-                                fontSize: 24,
-                                fontWeight: FontWeight.w900,
+                              hintStyle: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                                color: Theme.of(context).hintColor,
                                 fontFamily: 'SF Pro Text',
                               ),
                             ),
@@ -400,13 +493,7 @@ Multiple images in vertical stack
                           Text(
                             _formatDateTime(_createdAt),
                             textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              color: Color(0xFF707071),
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                              fontFamily: 'SF Pro Text',
-                              letterSpacing: -0.18,
-                            ),
+                            style: Theme.of(context).textTheme.bodySmall,
                           ),
                         ],
                       ),
@@ -417,64 +504,109 @@ Multiple images in vertical stack
                       child: Container(
                         width: double.infinity,
                         padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: QuillEditor.basic(
-                          controller: _quillController,
-                          focusNode: _focusNode,
-                          config: QuillEditorConfig(
-                            placeholder: 'Start typing...',
-                            padding: EdgeInsets.zero,
-                            minHeight: 100,
-                            maxHeight: double.infinity,
-                            customStyles: DefaultStyles(
-                              paragraph: DefaultTextBlockStyle(
-                                const TextStyle(
-                                  fontSize: 16,
-                                  fontFamily: 'SF Pro Text',
-                                  color: Colors.white,
+                        child: Consumer(
+                          builder: (context, ref, child) {
+                            final themeNotifier = ref.read(themeProvider.notifier);
+                            final textColor =
+                                themeNotifier.isDarkMode ? Colors.white : Colors.black;
+
+                            return Theme(
+                              data: Theme.of(context).copyWith(
+                                textTheme: Theme.of(context).textTheme.copyWith(
+                                  bodyLarge: TextStyle(color: textColor),
+                                  bodyMedium: TextStyle(color: textColor),
+                                  bodySmall: TextStyle(color: textColor),
                                 ),
-                                const HorizontalSpacing(0, 0),
-                                const VerticalSpacing(0, 0),
-                                const VerticalSpacing(0, 0),
-                                null,
-                              ),
-                              h1: DefaultTextBlockStyle(
-                                const TextStyle(
-                                  fontSize: 32,
-                                  fontFamily: 'SF Pro Display',
-                                  fontWeight: FontWeight.w900,
-                                  color: Colors.white,
+                                listTileTheme: ListTileThemeData(
+                                  textColor: textColor,
+                                  iconColor: textColor,
                                 ),
-                                const HorizontalSpacing(0, 0),
-                                const VerticalSpacing(0, 0),
-                                const VerticalSpacing(0, 0),
-                                null,
                               ),
-                              h2: DefaultTextBlockStyle(
-                                const TextStyle(
-                                  fontSize: 24,
-                                  fontFamily: 'SF Pro Text',
-                                  fontWeight: FontWeight.w700,
-                                  color: Colors.white,
+                              child: QuillEditor.basic(
+                                controller: _quillController,
+                                focusNode: _focusNode,
+                                config: QuillEditorConfig(
+                                  placeholder: 'Start typing...',
+                                  padding: EdgeInsets.zero,
+                                  minHeight: 100,
+                                  maxHeight: double.infinity,
+                                  customStyles: DefaultStyles(
+                                    // Body text - SF Pro Text, ~17pt, Regular
+                                    paragraph: DefaultTextBlockStyle(
+                                      TextStyle(
+                                        fontSize: 17,
+                                        fontFamily: 'SF Pro Text',
+                                        fontWeight: FontWeight.w400,
+                                        color: textColor,
+                                        height: 1.2,
+                                      ),
+                                      const HorizontalSpacing(0, 0),
+                                      const VerticalSpacing(0, 0),
+                                      const VerticalSpacing(0, 0),
+                                      null,
+                                    ),
+                                    // Title - SF Pro Display, Larger than body, Semibold/Bold
+                                    h1: DefaultTextBlockStyle(
+                                      TextStyle(
+                                        fontSize: 28,
+                                        fontFamily: 'SF Pro Display',
+                                        fontWeight: FontWeight.w600, // Semibold
+                                        color: textColor,
+                                        height: 1.1,
+                                      ),
+                                      const HorizontalSpacing(0, 0),
+                                      const VerticalSpacing(0, 0),
+                                      const VerticalSpacing(0, 0),
+                                      null,
+                                    ),
+                                    // Heading - SF Pro Display/Text, Slightly larger than body, Bold
+                                    h2: DefaultTextBlockStyle(
+                                      TextStyle(
+                                        fontSize: 20,
+                                        fontFamily: 'SF Pro Text',
+                                        fontWeight: FontWeight.w700, // Bold
+                                        color: textColor,
+                                        height: 1.2,
+                                      ),
+                                      const HorizontalSpacing(0, 0),
+                                      const VerticalSpacing(0, 0),
+                                      const VerticalSpacing(0, 0),
+                                      null,
+                                    ),
+                                    // Subheading - SF Pro Text, Same size as body, Bold
+                                    h3: DefaultTextBlockStyle(
+                                      TextStyle(
+                                        fontSize: 17,
+                                        fontFamily: 'SF Pro Text',
+                                        fontWeight: FontWeight.w700, // Bold
+                                        color: textColor,
+                                        height: 1.2,
+                                      ),
+                                      const HorizontalSpacing(0, 0),
+                                      const VerticalSpacing(0, 0),
+                                      const VerticalSpacing(0, 0),
+                                      null,
+                                    ),
+                                    // Lists - SF Pro Text with compact indentation
+                                    lists: DefaultListBlockStyle(
+                                      TextStyle(
+                                        fontSize: 17,
+                                        fontFamily: 'SF Pro Text',
+                                        fontWeight: FontWeight.w400,
+                                        color: textColor,
+                                        height: 1.1, // Tighter line height for lists
+                                      ),
+                                      const HorizontalSpacing(8, 0), // Very small indent (8px instead of default ~20px)
+                                      const VerticalSpacing(1, 0), // Minimal vertical spacing between items
+                                      const VerticalSpacing(1, 0),
+                                      null, // Checkbox builder (not used for regular lists)
+                                      null, // Number builder (not used for regular lists)
+                                    ),
+                                  ),
                                 ),
-                                const HorizontalSpacing(0, 0),
-                                const VerticalSpacing(0, 0),
-                                const VerticalSpacing(0, 0),
-                                null,
                               ),
-                              h3: DefaultTextBlockStyle(
-                                const TextStyle(
-                                  fontSize: 20,
-                                  fontFamily: 'SF Pro Text',
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.white,
-                                ),
-                                const HorizontalSpacing(0, 0),
-                                const VerticalSpacing(0, 0),
-                                const VerticalSpacing(0, 0),
-                                null,
-                              ),
-                            ),
-                          ),
+                            );
+                          },
                         ),
                       ),
                     ),
@@ -493,17 +625,22 @@ Multiple images in vertical stack
                 onStrikethrough: _toggleStrikethrough,
                 onTextAlign: _setTextAlign,
                 onHeading: _setHeading,
+                onBulletList: _toggleBulletList,
+                onNumberedList: _toggleNumberedList,
+                onDashList: _toggleDashList,
+                onIndentLeft: _setIndentLeft,
+                onIndentRight: _setIndentRight,
                 isBold: _isBold,
                 isItalic: _isItalic,
                 isUnderline: _isUnderline,
                 isStrikethrough: _isStrikethrough,
                 currentHeading: _currentHeading,
               ),
-              onChecklistTap: _insertChecklist,
-              onTableTap: _insertTable,
-              onMediaTap: _insertImagePlaceholder,
-              onCarouselTap: _insertCarouselPlaceholder,
-              onStackTap: _insertStackPlaceholder,
+              onChecklistTap: () => CustomModals.showChecklistModal(context),
+              onTableTap: () => CustomModals.showTableModal(context),
+              onMediaTap: () => CustomModals.showMediaModal(context),
+              onCarouselTap: () => CustomModals.showCarouselModal(context),
+              onStackTap: () => CustomModals.showStackModal(context),
               onCloseTap: () => FocusScope.of(context).unfocus(),
             ),
           ],
@@ -538,4 +675,4 @@ Multiple images in vertical stack
       default: return 'th';
     }
   }
-} 
+}

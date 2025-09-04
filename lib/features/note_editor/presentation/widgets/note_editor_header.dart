@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/theme/theme_provider.dart';
 
-class NoteEditorHeader extends StatelessWidget {
+class NoteEditorHeader extends ConsumerWidget {
   final VoidCallback? onSave;
   final bool isSaving;
   
@@ -13,9 +15,10 @@ class NoteEditorHeader extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final themeNotifier = ref.read(themeProvider.notifier);
     return Container(
-      color: Colors.black,
+      color: Theme.of(context).scaffoldBackgroundColor,
       child: SafeArea(
         child: Container(
           height: 44,
@@ -41,18 +44,29 @@ class NoteEditorHeader extends StatelessWidget {
               Expanded(
                 child: Container(
                   alignment: Alignment.center,
-                  child: const Text(
+                  child: Text(
                     'New Note',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w900,
-                      fontFamily: 'SF Pro Text',
-                      letterSpacing: -0.24,
-                    ),
+                    style: Theme.of(context).textTheme.headlineSmall,
                   ),
                 ),
               ),
+              
+              // Theme toggle button
+              GestureDetector(
+                onTap: () => themeNotifier.toggleTheme(),
+                child: Container(
+                  width: 24,
+                  height: 24,
+                  alignment: Alignment.center,
+                  child: Icon(
+                    themeNotifier.isDarkMode ? CupertinoIcons.sun_max : CupertinoIcons.moon,
+                    color: const Color(0xFF3375F8),
+                    size: 17,
+                  ),
+                ),
+              ),
+              
+              const SizedBox(width: 8),
               
               // Save button
               if (onSave != null)

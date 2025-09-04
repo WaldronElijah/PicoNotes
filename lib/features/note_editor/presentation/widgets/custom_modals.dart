@@ -15,7 +15,7 @@ class _ConnectedButton {
 }
 
 class CustomModals {
-  // Format Modal - Rich text formatting toolbar
+  // Format Modal - Redesigned with grouped islands (Apple design language)
   static void showFormatModal(
     BuildContext context, {
     VoidCallback? onBold,
@@ -24,6 +24,11 @@ class CustomModals {
     VoidCallback? onStrikethrough,
     Function(TextAlign)? onTextAlign,
     Function(String)? onHeading,
+    VoidCallback? onBulletList,
+    VoidCallback? onNumberedList,
+    VoidCallback? onDashList,
+    VoidCallback? onIndentLeft,
+    VoidCallback? onIndentRight,
     bool isBold = false,
     bool isItalic = false,
     bool isUnderline = false,
@@ -44,134 +49,174 @@ class CustomModals {
       builder: (context) => StatefulBuilder(
         builder: (context, setModalState) {
           return Container(
-          decoration: const BoxDecoration(
-            color: Color(0xFF2C2C2E),
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(10),
-              topRight: Radius.circular(10),
+            decoration: const BoxDecoration(
+              color: Color(0xFF2C2C2E),
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(10),
+                topRight: Radius.circular(10),
+              ),
             ),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const SizedBox(height: 6),
-              Container(
-                width: 36,
-                height: 5,
-                decoration: BoxDecoration(
-                  color: Colors.grey,
-                  borderRadius: BorderRadius.circular(2.5),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox(height: 6),
+                Container(
+                  width: 36,
+                  height: 5,
+                  decoration: BoxDecoration(
+                    color: Colors.grey,
+                    borderRadius: BorderRadius.circular(2.5),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 20),
-              
-                             // Format type tabs (Apple style)
-               Padding(
-                 padding: const EdgeInsets.symmetric(horizontal: 20),
-                 child: Row(
-                   children: [
-                     _buildInteractiveFormatTab('Title', 'title', (type) {
-                       onHeading?.call(type);
-                       setModalState(() {
-                         localCurrentHeading = type;
-                       });
-                     }, localCurrentHeading == 'title', setModalState),
-                     const SizedBox(width: 16),
-                     _buildInteractiveFormatTab('Heading', 'heading', (type) {
-                       onHeading?.call(type);
-                       setModalState(() {
-                         localCurrentHeading = type;
-                       });
-                     }, localCurrentHeading == 'heading', setModalState),
-                     const SizedBox(width: 16),
-                     _buildInteractiveFormatTab('Subheading', 'subheading', (type) {
-                       onHeading?.call(type);
-                       setModalState(() {
-                         localCurrentHeading = type;
-                       });
-                     }, localCurrentHeading == 'subheading', setModalState),
-                     const SizedBox(width: 16),
-                     _buildInteractiveFormatTab('Body', 'body', (type) {
-                       onHeading?.call(type);
-                       setModalState(() {
-                         localCurrentHeading = type;
-                       });
-                     }, localCurrentHeading == 'body', setModalState),
-                   ],
-                 ),
-               ),
-              
-              const SizedBox(height: 20),
-              
-                             // Row 2: Bold, Italic, Underline, Strikethrough (centered and connected)
-               Center(
-                 child: _buildConnectedButtonGroup([
-                   _ConnectedButton('B', CupertinoIcons.bold, true, onTap: () {
-                     onBold?.call();
-                     setModalState(() {
-                       localIsBold = !localIsBold;
-                     });
-                   }, isActive: localIsBold),
-                   _ConnectedButton('I', CupertinoIcons.italic, true, onTap: () {
-                     onItalic?.call();
-                     setModalState(() {
-                       localIsItalic = !localIsItalic;
-                     });
-                   }, isActive: localIsItalic),
-                   _ConnectedButton('U', CupertinoIcons.underline, true, onTap: () {
-                     onUnderline?.call();
-                     setModalState(() {
-                       localIsUnderline = !localIsUnderline;
-                     });
-                   }, isActive: localIsUnderline),
-                   _ConnectedButton('S', CupertinoIcons.strikethrough, true, onTap: () {
-                     onStrikethrough?.call();
-                     setModalState(() {
-                       localIsStrikethrough = !localIsStrikethrough;
-                     });
-                   }, isActive: localIsStrikethrough),
-                 ], isPrimary: true, isWideSpan: true, setModalState: setModalState),
-               ),
-              
-              const SizedBox(height: 20),
-              
-              // Row 3: Advanced Features with Dropdowns and Special Functions
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    // Bullet List Dropdown (hold for Number, Hyphen)
-                    _buildListDropdown(),
-                    
-                    // Center Alignment Dropdown (hold for Left, Center, Right)
-                    _buildAlignmentDropdown(),
-                    
-                    // Deep Link (Obsidian-style)
-                    _buildDeepLinkButton(),
-                    
-                    // Highlight
-                    _buildFormatButton('', CupertinoIcons.paintbrush_fill, false),
-                    
-                    // Text Color (filled circle)
-                    _buildFormatButton('', CupertinoIcons.circle_fill, false),
-                    
-                    // Divider (line with dash under)
-                    _buildFormatButton('', CupertinoIcons.line_horizontal_3, false),
-                    
-                    // Block Note (filled black box)
-                    _buildFormatButton('', CupertinoIcons.square_fill, false),
-                    
-                    // Calendar Dropdown
-                    _buildCalendarButton(),
-                  ],
+                const SizedBox(height: 20),
+                
+                // Title with close button
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Row(
+                    children: [
+                      const Text(
+                        'Format',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          fontFamily: 'SF Pro Text',
+                        ),
+                      ),
+                      const Spacer(),
+                      GestureDetector(
+                        onTap: () => Navigator.of(context).pop(),
+                        child: const Icon(
+                          CupertinoIcons.xmark,
+                          color: Colors.white,
+                          size: 18,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              
-              const SizedBox(height: 20),
-            ],
-          ),
-        );
+                
+                const SizedBox(height: 20),
+                
+                // Text Style Presets (Apple style)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Row(
+                    children: [
+                      _buildTextStyleTab('Title', 'title', (type) {
+                        onHeading?.call(type);
+                        setModalState(() {
+                          localCurrentHeading = type;
+                        });
+                      }, localCurrentHeading == 'title'),
+                      const SizedBox(width: 16),
+                      _buildTextStyleTab('Heading', 'heading', (type) {
+                        onHeading?.call(type);
+                        setModalState(() {
+                          localCurrentHeading = type;
+                        });
+                      }, localCurrentHeading == 'heading'),
+                      const SizedBox(width: 16),
+                      _buildTextStyleTab('Subheading', 'subheading', (type) {
+                        onHeading?.call(type);
+                        setModalState(() {
+                          localCurrentHeading = type;
+                        });
+                      }, localCurrentHeading == 'subheading'),
+                      const SizedBox(width: 16),
+                      _buildTextStyleTab('Body', 'body', (type) {
+                        onHeading?.call(type);
+                        setModalState(() {
+                          localCurrentHeading = type;
+                        });
+                      }, localCurrentHeading == 'body'),
+                    ],
+                  ),
+                ),
+                
+                const SizedBox(height: 20),
+                
+                // Row 1: Bold/Italic/Underline/Strikethrough + Color Picker + Brush + Calendar
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Row(
+                    children: [
+                      // Text formatting island (smaller)
+                      _buildTextFormattingIsland(
+                        localIsBold, localIsItalic, localIsUnderline, localIsStrikethrough,
+                        () {
+                          onBold?.call();
+                          setModalState(() {
+                            localIsBold = !localIsBold;
+                          });
+                        },
+                        () {
+                          onItalic?.call();
+                          setModalState(() {
+                            localIsItalic = !localIsItalic;
+                          });
+                        },
+                        () {
+                          onUnderline?.call();
+                          setModalState(() {
+                            localIsUnderline = !localIsUnderline;
+                          });
+                        },
+                        () {
+                          onStrikethrough?.call();
+                          setModalState(() {
+                            localIsStrikethrough = !localIsStrikethrough;
+                          });
+                        },
+                        setModalState
+                      ),
+                      
+                      const SizedBox(width: 12),
+                      
+                      // Color picker and brush island
+                      _buildColorBrushIsland(),
+                      
+                      const SizedBox(width: 12),
+                      
+                      // Calendar solo island
+                      _buildCalendarIsland(),
+                    ],
+                  ),
+                ),
+                
+                const SizedBox(height: 16),
+                
+                // Row 2: Bullet/Number + Space + Indent (Left/Right) + Space + Deeplink + Space + Block/Divider
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Row(
+                    children: [
+                      // Bullet and Number list island
+                      _buildListIsland(onBulletList, onNumberedList),
+                      
+                      const SizedBox(width: 8),
+                      
+                      // Indent island (Left/Right)
+                      _buildIndentIsland(onIndentLeft, onIndentRight),
+                      
+                      const SizedBox(width: 8),
+                      
+                      // Deep link island
+                      _buildDeepLinkIsland(),
+                      
+                      const SizedBox(width: 8),
+                      
+                      // Block note and divider combined island
+                      _buildBlockDividerIsland(),
+                    ],
+                  ),
+                ),
+                
+                const SizedBox(height: 20),
+              ],
+            ),
+          );
         },
       ),
     );
@@ -182,204 +227,62 @@ class CustomModals {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setModalState) {
-          // Local state for checklist items
-          List<Map<String, dynamic>> checklistItems = [
-            {'text': 'Sample checklist item', 'completed': false, 'id': DateTime.now().millisecondsSinceEpoch.toString()},
-          ];
-          
-          return Container(
-            decoration: const BoxDecoration(
-              color: Color(0xFF2C2C2E),
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(10),
-                topRight: Radius.circular(10),
+      builder: (context) => Container(
+        decoration: const BoxDecoration(
+          color: Color(0xFF2C2C2E),
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(10),
+            topRight: Radius.circular(10),
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 12),
+            Container(
+              width: 36,
+              height: 5,
+              decoration: BoxDecoration(
+                color: Colors.grey,
+                borderRadius: BorderRadius.circular(2.5),
               ),
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const SizedBox(height: 12),
-                Container(
-                  width: 36,
-                  height: 5,
-                  decoration: BoxDecoration(
-                    color: Colors.grey,
-                    borderRadius: BorderRadius.circular(2.5),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                
-                // Title
-                const Text(
-                  'Checklist',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    fontFamily: 'SF Pro Text',
-                  ),
-                ),
-                const SizedBox(height: 20),
-                
-                // Checklist items
-                Container(
-                  constraints: const BoxConstraints(maxHeight: 300),
-                  child: ListView.builder(
-                    shrinkWrap: true,
-                    itemCount: checklistItems.length,
-                    itemBuilder: (context, index) {
-                      final item = checklistItems[index];
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                        child: Row(
-                          children: [
-                            // Checkbox
-                            GestureDetector(
-                              onTap: () {
-                                setModalState(() {
-                                  item['completed'] = !item['completed'];
-                                });
-                              },
-                              child: Container(
-                                width: 24,
-                                height: 24,
-                                decoration: BoxDecoration(
-                                  color: item['completed'] ? const Color(0xFF3375F8) : Colors.transparent,
-                                  border: Border.all(
-                                    color: item['completed'] ? const Color(0xFF3375F8) : Colors.grey,
-                                    width: 2,
-                                  ),
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                                child: item['completed']
-                                    ? const Icon(
-                                        CupertinoIcons.check_mark,
-                                        color: Colors.white,
-                                        size: 16,
-                                      )
-                                    : null,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            
-                            // Text input
-                            Expanded(
-                              child: TextField(
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  decoration: item['completed'] ? TextDecoration.lineThrough : null,
-                                ),
-                                decoration: const InputDecoration(
-                                  border: InputBorder.none,
-                                  hintText: 'Checklist item',
-                                  hintStyle: TextStyle(color: Color(0xFF8E8E93)),
-                                ),
-                                onChanged: (value) {
-                                  item['text'] = value;
-                                },
-                              ),
-                            ),
-                            
-                            // Delete button
-                            if (checklistItems.length > 1)
-                              GestureDetector(
-                                onTap: () {
-                                  setModalState(() {
-                                    checklistItems.removeAt(index);
-                                  });
-                                },
-                                child: const Icon(
-                                  CupertinoIcons.xmark_circle_fill,
-                                  color: Color(0xFFFF3B30),
-                                  size: 20,
-                                ),
-                              ),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
-                ),
-                
-                const SizedBox(height: 20),
-                
-                // Add new item button
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: () {
-                            setModalState(() {
-                              checklistItems.add({
-                                'text': '',
-                                'completed': false,
-                                'id': DateTime.now().millisecondsSinceEpoch.toString(),
-                              });
-                            });
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF3375F8),
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                          child: const Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(CupertinoIcons.plus, size: 16),
-                              SizedBox(width: 8),
-                              Text('Add Item'),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                
-                const SizedBox(height: 20),
-                
-                // Insert button
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        // TODO: Insert checklist into note
-                        Navigator.of(context).pop();
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF34C759),
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      child: const Text(
-                        'Insert Checklist',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
+            const SizedBox(height: 20),
+            
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: _buildChecklistOption(
+                      'checklist',
+                      CupertinoIcons.check_mark_circled,
+                      context,
                     ),
                   ),
-                ),
-                
-                const SizedBox(height: 20),
-              ],
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildChecklistOption(
+                      'consistency\ntracker list',
+                      CupertinoIcons.square_grid_3x2,
+                      context,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildChecklistOption(
+                      'progress\ntracker list',
+                      CupertinoIcons.star,
+                      context,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          );
-        },
+            
+            const SizedBox(height: 20),
+          ],
+        ),
       ),
     );
   }
@@ -389,266 +292,54 @@ class CustomModals {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setModalState) {
-          int rows = 3;
-          int columns = 3;
-          
-          return Container(
-            decoration: const BoxDecoration(
-              color: Color(0xFF2C2C2E),
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(10),
-                topRight: Radius.circular(10),
+      builder: (context) => Container(
+        decoration: const BoxDecoration(
+          color: Color(0xFF2C2C2E),
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(10),
+            topRight: Radius.circular(10),
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 12),
+            Container(
+              width: 36,
+              height: 5,
+              decoration: BoxDecoration(
+                color: Colors.grey,
+                borderRadius: BorderRadius.circular(2.5),
               ),
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const SizedBox(height: 12),
-                Container(
-                  width: 36,
-                  height: 5,
-                  decoration: BoxDecoration(
-                    color: Colors.grey,
-                    borderRadius: BorderRadius.circular(2.5),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                
-                // Title
-                const Text(
-                  'Create Table',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    fontFamily: 'SF Pro Text',
-                  ),
-                ),
-                const SizedBox(height: 20),
-                
-                // Table dimensions
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Rows',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Row(
-                              children: [
-                                IconButton(
-                                  onPressed: () {
-                                    if (rows > 1) {
-                                      setModalState(() {
-                                        rows--;
-                                      });
-                                    }
-                                  },
-                                  icon: const Icon(
-                                    CupertinoIcons.minus_circle_fill,
-                                    color: Color(0xFFFF3B30),
-                                    size: 24,
-                                  ),
-                                ),
-                                Container(
-                                  width: 50,
-                                  padding: const EdgeInsets.symmetric(vertical: 8),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFF1C1C1E),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Text(
-                                    '$rows',
-                                    textAlign: TextAlign.center,
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ),
-                                IconButton(
-                                  onPressed: () {
-                                    if (rows < 10) {
-                                      setModalState(() {
-                                        rows++;
-                                      });
-                                    }
-                                  },
-                                  icon: const Icon(
-                                    CupertinoIcons.plus_circle_fill,
-                                    color: Color(0xFF34C759),
-                                    size: 24,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                      
-                      const SizedBox(width: 20),
-                      
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Columns',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Row(
-                              children: [
-                                IconButton(
-                                  onPressed: () {
-                                    if (columns > 1) {
-                                      setModalState(() {
-                                        columns--;
-                                      });
-                                    }
-                                  },
-                                  icon: const Icon(
-                                    CupertinoIcons.minus_circle_fill,
-                                    color: Color(0xFFFF3B30),
-                                    size: 24,
-                                  ),
-                                ),
-                                Container(
-                                  width: 50,
-                                  padding: const EdgeInsets.symmetric(vertical: 8),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFF1C1C1E),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Text(
-                                    '$columns',
-                                    textAlign: TextAlign.center,
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ),
-                                IconButton(
-                                  onPressed: () {
-                                    if (columns < 8) {
-                                      setModalState(() {
-                                        columns++;
-                                      });
-                                    }
-                                  },
-                                  icon: const Icon(
-                                    CupertinoIcons.plus_circle_fill,
-                                    color: Color(0xFF34C759),
-                                    size: 24,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                
-                const SizedBox(height: 20),
-                
-                // Table preview
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF1C1C1E),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: const Color(0xFF3C3C3E)),
-                    ),
-                    child: Column(
-                      children: List.generate(rows, (rowIndex) {
-                        return Row(
-                          children: List.generate(columns, (colIndex) {
-                            return Expanded(
-                              child: Container(
-                                height: 40,
-                                margin: const EdgeInsets.all(1),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFF2C2C2E),
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                                child: const Center(
-                                  child: Text(
-                                    'Cell',
-                                    style: TextStyle(
-                                      color: Color(0xFF8E8E93),
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            );
-                          }),
-                        );
-                      }),
+            const SizedBox(height: 20),
+            
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: _buildTableOption(
+                      'table',
+                      CupertinoIcons.table,
+                      context,
                     ),
                   ),
-                ),
-                
-                const SizedBox(height: 20),
-                
-                // Insert button
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        // TODO: Insert table into note
-                        Navigator.of(context).pop();
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF34C759),
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      child: const Text(
-                        'Insert Table',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildTableOption(
+                      'line table',
+                      CupertinoIcons.line_horizontal_3,
+                      context,
                     ),
                   ),
-                ),
-                
-                const SizedBox(height: 20),
-              ],
+                ],
+              ),
             ),
-          );
-        },
+            
+            const SizedBox(height: 20),
+          ],
+        ),
       ),
     );
   }
@@ -931,6 +622,35 @@ class CustomModals {
             ),
             const SizedBox(height: 20),
             
+            // Title with close button
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
+                children: [
+                  const Text(
+                    'Carousel',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      fontFamily: 'SF Pro Text',
+                    ),
+                  ),
+                  const Spacer(),
+                  GestureDetector(
+                    onTap: () => Navigator.of(context).pop(),
+                    child: const Icon(
+                      CupertinoIcons.xmark,
+                      color: Colors.white,
+                      size: 18,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            
+            const SizedBox(height: 20),
+            
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Column(
@@ -1069,6 +789,35 @@ class CustomModals {
                 borderRadius: BorderRadius.circular(2.5),
               ),
             ),
+            const SizedBox(height: 20),
+            
+            // Title with close button
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
+                children: [
+                  const Text(
+                    'Stack',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      fontFamily: 'SF Pro Text',
+                    ),
+                  ),
+                  const Spacer(),
+                  GestureDetector(
+                    onTap: () => Navigator.of(context).pop(),
+                    child: const Icon(
+                      CupertinoIcons.xmark,
+                      color: Colors.white,
+                      size: 18,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            
             const SizedBox(height: 20),
             
             Padding(
@@ -1230,40 +979,6 @@ class CustomModals {
     );
   }
 
-  static Widget _buildFormatButton(String label, IconData icon, bool isPrimary) {
-    return GestureDetector(
-      onTap: () {
-        print('Format button tapped: $label');
-        // TODO: Implement actual formatting logic
-      },
-      child: Container(
-        width: isPrimary ? 40 : 36,
-        height: 36,
-        decoration: BoxDecoration(
-          color: const Color(0xFF3C3C3E),
-          borderRadius: BorderRadius.circular(6),
-          border: Border.all(color: const Color(0xFF4C4C4E), width: 1),
-        ),
-        child: Center(
-          child: label.isNotEmpty 
-            ? Text(
-                label,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  fontFamily: 'SF Pro',
-                ),
-              )
-            : Icon(
-                icon,
-                color: Colors.white,
-                size: 18,
-              ),
-        ),
-      ),
-    );
-  }
 
   // Apple-style primary formatting buttons (Bold, Italic, Underline, Strikethrough)
   static Widget _buildApplePrimaryButton(String label, IconData icon) {
@@ -1778,15 +1493,15 @@ class CustomModals {
   }
 
   // List dropdown (Bullet, Number, Hyphen) - Long press for options
-  static Widget _buildListDropdown() {
+  static Widget _buildListDropdown(VoidCallback? onBulletList, VoidCallback? onNumberedList, VoidCallback? onDashList) {
     return Builder(
       builder: (context) => GestureDetector(
         onTap: () {
           // Default: Bullet list
-          print('Applying bullet list');
+          onBulletList?.call();
         },
         onLongPress: () {
-          _showListMenu(context);
+          _showListMenu(context, onBulletList, onNumberedList, onDashList);
         },
         child: Container(
           width: 36,
@@ -1807,15 +1522,15 @@ class CustomModals {
   }
 
   // Alignment dropdown (Left, Center, Right) - Long press for options
-  static Widget _buildAlignmentDropdown() {
+  static Widget _buildAlignmentDropdown(VoidCallback? onLeftAlign, VoidCallback? onCenterAlign, VoidCallback? onRightAlign) {
     return Builder(
       builder: (context) => GestureDetector(
         onTap: () {
           // Default: Center alignment
-          print('Applying center alignment');
+          onCenterAlign?.call();
         },
         onLongPress: () {
-          _showAlignmentMenu(context);
+          _showAlignmentMenu(context, onLeftAlign, onCenterAlign, onRightAlign);
         },
         child: Container(
           width: 36,
@@ -1886,7 +1601,7 @@ class CustomModals {
   }
 
   // Show list menu (Number, Hyphen)
-  static void _showListMenu(BuildContext context) {
+  static void _showListMenu(BuildContext context, VoidCallback? onBulletList, VoidCallback? onNumberedList, VoidCallback? onDashList) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -1916,8 +1631,8 @@ class CustomModals {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  _buildListOption('Number', CupertinoIcons.list_number, context),
-                  _buildListOption('Hyphen', CupertinoIcons.list_dash, context),
+                  _buildListOption('Number', CupertinoIcons.list_number, context, onNumberedList),
+                  _buildListOption('Hyphen', CupertinoIcons.list_dash, context, onDashList),
                 ],
               ),
             ),
@@ -1929,7 +1644,7 @@ class CustomModals {
   }
 
   // Show alignment menu (Left, Center, Right)
-  static void _showAlignmentMenu(BuildContext context) {
+  static void _showAlignmentMenu(BuildContext context, VoidCallback? onLeftAlign, VoidCallback? onCenterAlign, VoidCallback? onRightAlign) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -1959,9 +1674,9 @@ class CustomModals {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  _buildAlignmentOption('Left', CupertinoIcons.text_alignleft, context),
-                  _buildAlignmentOption('Center', CupertinoIcons.text_aligncenter, context),
-                  _buildAlignmentOption('Right', CupertinoIcons.text_alignright, context),
+                  _buildAlignmentOption('Left', CupertinoIcons.text_alignleft, context, onLeftAlign),
+                  _buildAlignmentOption('Center', CupertinoIcons.text_aligncenter, context, onCenterAlign),
+                  _buildAlignmentOption('Right', CupertinoIcons.text_alignright, context, onRightAlign),
                 ],
               ),
             ),
@@ -2100,11 +1815,11 @@ class CustomModals {
   }
 
   // Helper widgets for options
-  static Widget _buildListOption(String title, IconData icon, BuildContext context) {
+  static Widget _buildListOption(String title, IconData icon, BuildContext context, VoidCallback? onTap) {
     return GestureDetector(
       onTap: () {
         Navigator.of(context).pop();
-        print('Selected list: $title');
+        onTap?.call();
       },
       child: Container(
         width: 80,
@@ -2132,11 +1847,11 @@ class CustomModals {
     );
   }
 
-  static Widget _buildAlignmentOption(String title, IconData icon, BuildContext context) {
+  static Widget _buildAlignmentOption(String title, IconData icon, BuildContext context, VoidCallback? onTap) {
     return GestureDetector(
       onTap: () {
         Navigator.of(context).pop();
-        print('Selected alignment: $title');
+        onTap?.call();
       },
       child: Container(
         width: 80,
@@ -2198,6 +1913,261 @@ class CustomModals {
                 color: Colors.white,
                 fontSize: 12,
                 fontFamily: 'SF Pro',
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ===== NEW ISLAND BUILDERS =====
+
+  // Text style tab (Apple style)
+  static Widget _buildTextStyleTab(String text, String type, Function(String)? onHeading, bool isActive) {
+    return GestureDetector(
+      onTap: () {
+        HapticFeedback.lightImpact();
+        onHeading?.call(type);
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: isActive ? Colors.white : Colors.transparent,
+          borderRadius: BorderRadius.circular(6),
+        ),
+        child: Text(
+          text,
+          style: TextStyle(
+            color: isActive ? Colors.black : Colors.white,
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            fontFamily: 'SF Pro Text',
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Text formatting island (Bold, Italic, Underline, Strikethrough) - smaller
+  static Widget _buildTextFormattingIsland(
+    bool isBold, bool isItalic, bool isUnderline, bool isStrikethrough,
+    VoidCallback? onBold, VoidCallback? onItalic, VoidCallback? onUnderline, VoidCallback? onStrikethrough,
+    StateSetter setModalState
+  ) {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFF3C3C3E),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _buildFormatButton('B', CupertinoIcons.bold, isBold, () {
+            onBold?.call();
+            setModalState(() {
+              // State will be updated by the parent component
+            });
+          }),
+          _buildFormatButton('I', CupertinoIcons.italic, isItalic, () {
+            onItalic?.call();
+            setModalState(() {
+              // State will be updated by the parent component
+            });
+          }),
+          _buildFormatButton('U', CupertinoIcons.underline, isUnderline, () {
+            onUnderline?.call();
+            setModalState(() {
+              // State will be updated by the parent component
+            });
+          }),
+          _buildFormatButton('S', CupertinoIcons.strikethrough, isStrikethrough, () {
+            onStrikethrough?.call();
+            setModalState(() {
+              // State will be updated by the parent component
+            });
+          }),
+        ],
+      ),
+    );
+  }
+
+  // Color picker and brush island
+  static Widget _buildColorBrushIsland() {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFF3C3C3E),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _buildFormatButton('', CupertinoIcons.circle_fill, false, () {
+            print('Color picker tapped');
+          }),
+          _buildFormatButton('', CupertinoIcons.paintbrush_fill, false, () {
+            print('Brush tapped');
+          }),
+        ],
+      ),
+    );
+  }
+
+  // Calendar solo island
+  static Widget _buildCalendarIsland() {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFF3C3C3E),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: _buildFormatButton('', CupertinoIcons.calendar, false, () {
+        print('Calendar tapped');
+      }),
+    );
+  }
+
+  // List island (Bullet and Number) - no popup
+  static Widget _buildListIsland(VoidCallback? onBulletList, VoidCallback? onNumberedList) {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFF3C3C3E),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _buildFormatButton('', CupertinoIcons.list_bullet, false, () {
+            onBulletList?.call();
+          }),
+          _buildFormatButton('', CupertinoIcons.list_number, false, () {
+            onNumberedList?.call();
+          }),
+        ],
+      ),
+    );
+  }
+
+  // Indent island (Indent Left, Indent Right)
+  static Widget _buildIndentIsland(VoidCallback? onIndentLeft, VoidCallback? onIndentRight) {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFF3C3C3E),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _buildFormatButton('', CupertinoIcons.arrow_left, false, () {
+            onIndentLeft?.call();
+          }),
+          _buildFormatButton('', CupertinoIcons.arrow_right, false, () {
+            onIndentRight?.call();
+          }),
+        ],
+      ),
+    );
+  }
+
+  // Deep link island
+  static Widget _buildDeepLinkIsland() {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFF3C3C3E),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: _buildFormatButton('', CupertinoIcons.link, false, () {
+        print('Deep link tapped');
+      }),
+    );
+  }
+
+  // Block note and divider combined island
+  static Widget _buildBlockDividerIsland() {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFF3C3C3E),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _buildFormatButton('', CupertinoIcons.square_fill, false, () {
+            print('Block note tapped');
+          }),
+          _buildFormatButton('', CupertinoIcons.line_horizontal_3, false, () {
+            print('Divider tapped');
+          }),
+        ],
+      ),
+    );
+  }
+
+  // Format button helper (Apple style) - Updated version
+  static Widget _buildFormatButton(String label, IconData icon, bool isActive, VoidCallback? onTap) {
+    return GestureDetector(
+      onTap: () {
+        HapticFeedback.lightImpact();
+        onTap?.call();
+      },
+      child: Container(
+        width: 44,
+        height: 44,
+        decoration: BoxDecoration(
+          color: isActive ? const Color(0xFF007AFF) : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Center(
+          child: label.isNotEmpty 
+            ? Text(
+                label,
+                style: TextStyle(
+                  color: isActive ? Colors.white : Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  fontFamily: 'SF Pro Text',
+                ),
+              )
+            : Icon(
+                icon,
+                color: isActive ? Colors.white : Colors.white,
+                size: 20,
+              ),
+        ),
+      ),
+    );
+  }
+
+
+  // Simple option helper for checklist and table modals
+  static Widget _buildSimpleOption(String title, IconData icon, BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(context).pop();
+        print('Selected: $title');
+      },
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+        decoration: BoxDecoration(
+          color: const Color(0xFF3C3C3E),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              icon,
+              color: Colors.white,
+              size: 20,
+            ),
+            const SizedBox(width: 12),
+            Text(
+              title,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                fontFamily: 'SF Pro Text',
               ),
             ),
           ],
