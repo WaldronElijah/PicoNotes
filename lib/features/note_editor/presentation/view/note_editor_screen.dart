@@ -18,9 +18,7 @@ class NoteEditorScreen extends StatefulWidget {
 
 class _NoteEditorScreenState extends State<NoteEditorScreen> {
   final FocusNode _focusNode = FocusNode();
-  final TextEditingController _titleController = TextEditingController();
-  late QuillController _quillController = QuillController.basic();
-  bool _showToolbar = false;
+  final QuillController _quillController = QuillController.basic();
   bool _isSaving = false;
   final DateTime _createdAt = DateTime.now();
   final NoteRepository _noteRepository = NoteRepository();
@@ -30,7 +28,6 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
   bool _isItalic = false;
   bool _isUnderline = false;
   bool _isStrikethrough = false;
-  TextAlign _textAlign = TextAlign.left;
   String _currentHeading = 'body'; // 'title', 'heading', 'subheading', 'body'
 
   // Helper to unset attributes in flutter_quill 11.4.2
@@ -49,25 +46,24 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
     
     _focusNode.addListener(() {
       setState(() {
-        _showToolbar = _focusNode.hasFocus;
+        // Focus state handled by toolbar visibility
       });
     });
     
-    // Force body on first line
+    // Set initial format to Title (H1) for first words
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _quillController.updateSelection(
         const TextSelection.collapsed(offset: 0),
         ChangeSource.local,
       );
-      _quillController.formatSelection(_unset(Attribute.header));
-      setState(() => _currentHeading = 'body');
+      _quillController.formatSelection(Attribute(Attribute.header.key, Attribute.header.scope, 1));
+      setState(() => _currentHeading = 'title');
     });
   }
 
   @override
   void dispose() {
     _focusNode.dispose();
-    _titleController.dispose();
     _quillController.dispose();
     super.dispose();
   }
@@ -100,17 +96,7 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
       debugPrint('currentHeading: $_currentHeading');
 
       // Alignment state (optional UI sync)
-      if (attrs.containsKey(Attribute.align.key)) {
-        final a = attrs[Attribute.align.key]!.value;
-        _textAlign = switch (a) {
-          'center'  => TextAlign.center,
-          'right'   => TextAlign.right,
-          'justify' => TextAlign.justify,
-          _         => TextAlign.left,
-        };
-      } else {
-        _textAlign = TextAlign.left;
-      }
+      // Note: Alignment state removed as it's not used in UI
     });
   }
 
@@ -164,107 +150,35 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
 
   // Media insertion methods
   void _insertChecklist() {
-    // Insert a checklist placeholder into the note
-    final checklistText = '''
-• [ ] Checklist item 1
-• [ ] Checklist item 2
-• [ ] Checklist item 3
-''';
-    
-    final selection = _quillController.selection;
-    _quillController.document.insert(selection.baseOffset, checklistText);
-    
-    // Move cursor after the inserted checklist
+    final sel = _quillController.selection;
+    if (!sel.isValid) return;
+
+    // If the document is empty, ensure there's a line to host the checklist.
+    if (_quillController.document.length <= 1) {
+      _quillController.document.insert(0, '\n');
+      _quillController.updateSelection(
+        const TextSelection.collapsed(offset: 0),
+        ChangeSource.local,
+      );
+    }
+
+    // Apply Quill's checklist attribute to the current selection/line.
+    // Values are 'unchecked' / 'checked'. We'll start with 'unchecked'.
+    _quillController.formatSelection(
+      Attribute(Attribute.list.key, Attribute.list.scope, 'unchecked'),
+    );
+
+    // Optional: move caret to the end of the current line to start typing immediately.
+    final newSel = _quillController.selection;
     _quillController.updateSelection(
-      selection.copyWith(
-        baseOffset: selection.baseOffset + checklistText.length,
-        extentOffset: selection.baseOffset + checklistText.length,
-      ),
+      TextSelection.collapsed(offset: newSel.extentOffset),
       ChangeSource.local,
     );
   }
 
-  void _insertTable() {
-    // Insert a table placeholder into the note
-    final tableText = '''
-| Column 1 | Column 2 | Column 3 |
-|----------|----------|----------|
-| Cell 1   | Cell 2   | Cell 3   |
-| Cell 4   | Cell 5   | Cell 6   |
-''';
-    
-    final selection = _quillController.selection;
-    _quillController.document.insert(selection.baseOffset, tableText);
-    
-    // Move cursor after the inserted table
-    _quillController.updateSelection(
-      selection.copyWith(
-        baseOffset: selection.baseOffset + tableText.length,
-        extentOffset: selection.baseOffset + tableText.length,
-      ),
-      ChangeSource.local,
-    );
-  }
 
-  void _insertImagePlaceholder() {
-    // Insert an image placeholder
-    final imagePlaceholder = '''
-[IMAGE PLACEHOLDER]
-Caption: Click to add image
-''';
-    
-    final selection = _quillController.selection;
-    _quillController.document.insert(selection.baseOffset, imagePlaceholder);
-    
-    // Move cursor after the inserted placeholder
-    _quillController.updateSelection(
-      selection.copyWith(
-        baseOffset: selection.baseOffset + imagePlaceholder.length,
-        extentOffset: selection.baseOffset + imagePlaceholder.length,
-      ),
-      ChangeSource.local,
-    );
-  }
 
-  void _insertCarouselPlaceholder() {
-    // Insert a carousel placeholder
-    final carouselPlaceholder = '''
-[CAROUSEL PLACEHOLDER]
-Multiple images in horizontal scroll
-''';
-    
-    final selection = _quillController.selection;
-    _quillController.document.insert(selection.baseOffset, carouselPlaceholder);
-    
-    // Move cursor after the inserted placeholder
-    _quillController.updateSelection(
-      selection.copyWith(
-        baseOffset: selection.baseOffset + carouselPlaceholder.length,
-        extentOffset: selection.baseOffset + carouselPlaceholder.length,
-      ),
-      ChangeSource.local,
-    );
-  }
 
-  void _insertStackPlaceholder() {
-    // Insert a stack placeholder
-    final stackPlaceholder = '''
-[STACK PLACEHOLDER]
-Multiple images in vertical stack
-''';
-    
-    final selection = _quillController.selection;
-    _quillController.document.insert(selection.baseOffset, stackPlaceholder);
-    
-    // Move cursor after the inserted placeholder
-    _quillController.updateSelection(
-      selection.copyWith(
-        baseOffset: selection.baseOffset + stackPlaceholder.length,
-        extentOffset: selection.baseOffset + stackPlaceholder.length,
-      ),
-      ChangeSource.local,
-    );
-  }
 
   void _setTextAlign(TextAlign alignment) {
     final sel = _quillController.selection;
@@ -277,7 +191,9 @@ Multiple images in vertical stack
       _                 => Attribute.leftAlignment,
     };
     _quillController.formatSelection(attr);
-    setState(() => _textAlign = alignment);
+    setState(() {
+      // Alignment applied to Quill controller
+    });
   }
 
   void _setHeading(String headingType) {
@@ -310,68 +226,44 @@ Multiple images in vertical stack
 
   // List formatting methods
   void _toggleBulletList() {
-    print('Bullet list button tapped!');
     final sel = _quillController.selection;
-    if (!sel.isValid) {
-      print('Selection not valid');
-      return;
-    }
+    if (!sel.isValid) return;
 
     final attrs = _quillController.getSelectionStyle().attributes;
     final current = attrs[Attribute.list.key];
 
-    print('Current list type: $current');
-
     if (current == Attribute.ul) {
       _quillController.formatSelection(_unset(Attribute.list));
-      print('Removed bullet list');
     } else {
       _quillController.formatSelection(Attribute.ul);
-      print('Added bullet list');
     }
   }
 
   void _toggleNumberedList() {
-    print('Numbered list button tapped!');
     final sel = _quillController.selection;
-    if (!sel.isValid) {
-      print('Selection not valid');
-      return;
-    }
+    if (!sel.isValid) return;
 
     final attrs = _quillController.getSelectionStyle().attributes;
     final current = attrs[Attribute.list.key];
 
-    print('Current list type: $current');
-
     if (current == Attribute.ol) {
       _quillController.formatSelection(_unset(Attribute.list));
-      print('Removed numbered list');
     } else {
       _quillController.formatSelection(Attribute.ol);
-      print('Added numbered list');
     }
   }
 
   void _toggleDashList() {
-    print('Dash list button tapped!');
     final sel = _quillController.selection;
-    if (!sel.isValid) {
-      print('Selection not valid');
-      return;
-    }
+    if (!sel.isValid) return;
 
     final attrs = _quillController.getSelectionStyle().attributes;
     final current = attrs[Attribute.list.key];
 
-    print('Current list type: $current');
-
     if (current == Attribute.ul) {
       _quillController.formatSelection(_unset(Attribute.list));
-      print('Removed dash list');
     } else {
       _quillController.formatSelection(Attribute.ul);
-      print('Added dash list');
     }
   }
 
@@ -381,7 +273,6 @@ Multiple images in vertical stack
     if (!sel.isValid) return;
 
     // TODO: Implement indent left functionality
-    print('Indent left tapped');
   }
 
   void _setIndentRight() {
@@ -389,14 +280,13 @@ Multiple images in vertical stack
     if (!sel.isValid) return;
 
     // TODO: Implement indent right functionality
-    print('Indent right tapped');
   }
 
   Future<void> _saveNote() async {
     // Get plain text content from Quill
     final quillContent = _quillController.document.toPlainText().trim();
     
-    if (_titleController.text.trim().isEmpty && quillContent.isEmpty) {
+    if (quillContent.isEmpty) {
       // Don't save empty notes
       return;
     }
@@ -411,8 +301,12 @@ Multiple images in vertical stack
         throw Exception('User not authenticated');
       }
 
+      // Extract title from first line of content
+      final lines = quillContent.split('\n');
+      final title = lines.isNotEmpty ? lines.first.trim() : 'Untitled Note';
+
       final note = Note.create(
-        title: _titleController.text.trim().isEmpty ? 'Untitled Note' : _titleController.text.trim(),
+        title: title.isEmpty ? 'Untitled Note' : title,
         content: quillContent,
         userId: user.id,
       );
@@ -455,10 +349,20 @@ Multiple images in vertical stack
       body: SafeArea(
         child: Column(
           children: [
-            // Header section with title, date, and navigation
+            // Header section
             NoteEditorHeader(
               onSave: _saveNote,
               isSaving: _isSaving,
+            ),
+            
+            // Date only under header
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Text(
+                _formatDateTime(_createdAt),
+                textAlign: TextAlign.left,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
             ),
             
             // Main content area
@@ -471,33 +375,6 @@ Multiple images in vertical stack
                 ),
                 child: Column(
                   children: [
-                    // Note title section - centered
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        children: [
-                          TextField(
-                            controller: _titleController,
-                            textAlign: TextAlign.center,
-                            style: Theme.of(context).textTheme.headlineLarge,
-                            decoration: InputDecoration(
-                              border: InputBorder.none,
-                              hintText: 'New Note',
-                              hintStyle: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                                color: Theme.of(context).hintColor,
-                                fontFamily: 'SF Pro Text',
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            _formatDateTime(_createdAt),
-                            textAlign: TextAlign.center,
-                            style: Theme.of(context).textTheme.bodySmall,
-                          ),
-                        ],
-                      ),
-                    ),
                     
                     // Note content area - now using QuillEditor for rich text
                     Expanded(
@@ -521,12 +398,33 @@ Multiple images in vertical stack
                                   textColor: textColor,
                                   iconColor: textColor,
                                 ),
+                                // Apple Notes-style circular checkboxes
+                                checkboxTheme: CheckboxThemeData(
+                                  shape: const CircleBorder(), // <-- round circles
+                                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                  visualDensity: VisualDensity.compact,
+                                  side: WidgetStateBorderSide.resolveWith((states) {
+                                    final cs = Theme.of(context).colorScheme;
+                                    return BorderSide(
+                                      color: states.contains(WidgetState.selected) ? cs.primary : cs.outline,
+                                      width: 2,
+                                    );
+                                  }),
+                                  fillColor: WidgetStateProperty.resolveWith((states) {
+                                    return states.contains(WidgetState.selected)
+                                        ? Theme.of(context).colorScheme.primary
+                                        : Colors.transparent;
+                                  }),
+                                  checkColor: WidgetStateProperty.all(
+                                    Theme.of(context).scaffoldBackgroundColor,
+                                  ),
+                                ),
                               ),
                               child: QuillEditor.basic(
                                 controller: _quillController,
                                 focusNode: _focusNode,
                                 config: QuillEditorConfig(
-                                  placeholder: 'Start typing...',
+                                  placeholder: '',
                                   padding: EdgeInsets.zero,
                                   minHeight: 100,
                                   maxHeight: double.infinity,
@@ -587,20 +485,21 @@ Multiple images in vertical stack
                                       const VerticalSpacing(0, 0),
                                       null,
                                     ),
-                                    // Lists - SF Pro Text with compact indentation
+                                    // Lists - SF Pro Text with Apple Notes-style spacing
                                     lists: DefaultListBlockStyle(
                                       TextStyle(
                                         fontSize: 17,
                                         fontFamily: 'SF Pro Text',
                                         fontWeight: FontWeight.w400,
                                         color: textColor,
-                                        height: 1.1, // Tighter line height for lists
+                                        height: 1.2,
                                       ),
-                                      const HorizontalSpacing(8, 0), // Very small indent (8px instead of default ~20px)
-                                      const VerticalSpacing(1, 0), // Minimal vertical spacing between items
-                                      const VerticalSpacing(1, 0),
-                                      null, // Checkbox builder (not used for regular lists)
-                                      null, // Number builder (not used for regular lists)
+                                      // HorizontalSpacing(indent, gapBetweenCheckboxAndText)
+                                      const HorizontalSpacing(18, 12), // <-- more gap between circle & text
+                                      const VerticalSpacing(8, 8),      // <-- spacing between items
+                                      const VerticalSpacing(8, 8),      // <-- spacing above/below list block
+                                      null, // keep these null – DON'T pass a function here
+                                      null,
                                     ),
                                   ),
                                 ),
@@ -636,7 +535,10 @@ Multiple images in vertical stack
                 isStrikethrough: _isStrikethrough,
                 currentHeading: _currentHeading,
               ),
-              onChecklistTap: () => CustomModals.showChecklistModal(context),
+              onChecklistTap: () => CustomModals.showChecklistModal(
+                context,
+                onChecklistInsert: _insertChecklist,
+              ),
               onTableTap: () => CustomModals.showTableModal(context),
               onMediaTap: () => CustomModals.showMediaModal(context),
               onCarouselTap: () => CustomModals.showCarouselModal(context),
@@ -675,4 +577,6 @@ Multiple images in vertical stack
       default: return 'th';
     }
   }
+
+
 }

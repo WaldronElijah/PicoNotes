@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../core/theme/theme_provider.dart';
 
 class NoteEditorHeader extends ConsumerWidget {
   final VoidCallback? onSave;
@@ -16,7 +14,6 @@ class NoteEditorHeader extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final themeNotifier = ref.read(themeProvider.notifier);
     return Container(
       color: Theme.of(context).scaffoldBackgroundColor,
       child: SafeArea(
@@ -40,58 +37,79 @@ class NoteEditorHeader extends ConsumerWidget {
                 ),
               ),
               
-              // Title
-              Expanded(
-                child: Container(
-                  alignment: Alignment.center,
-                  child: Text(
-                    'New Note',
-                    style: Theme.of(context).textTheme.headlineSmall,
-                  ),
-                ),
-              ),
+              const SizedBox(width: 16),
               
-              // Theme toggle button
+              // Undo Left button
               GestureDetector(
-                onTap: () => themeNotifier.toggleTheme(),
+                onTap: () {
+                  // TODO: Implement undo left functionality
+                },
                 child: Container(
                   width: 24,
                   height: 24,
                   alignment: Alignment.center,
-                  child: Icon(
-                    themeNotifier.isDarkMode ? CupertinoIcons.sun_max : CupertinoIcons.moon,
-                    color: const Color(0xFF3375F8),
+                  child: const Icon(
+                    CupertinoIcons.arrow_counterclockwise,
+                    color: Color(0xFF3375F8),
                     size: 17,
                   ),
                 ),
               ),
               
-              const SizedBox(width: 8),
+              const SizedBox(width: 16),
               
-              // Save button
-              if (onSave != null)
-                GestureDetector(
-                  onTap: isSaving ? null : onSave,
-                  child: Container(
-                    width: 24,
-                    height: 24,
-                    alignment: Alignment.center,
-                    child: isSaving
-                        ? const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                            ),
-                          )
-                        : const Icon(
-                            CupertinoIcons.check_mark,
-                            color: Color(0xFF3375F8),
-                            size: 17,
-                          ),
+              // Undo Right button
+              GestureDetector(
+                onTap: () {
+                  // TODO: Implement undo right functionality
+                },
+                child: Container(
+                  width: 24,
+                  height: 24,
+                  alignment: Alignment.center,
+                  child: const Icon(
+                    CupertinoIcons.arrow_clockwise,
+                    color: Color(0xFF3375F8),
+                    size: 17,
                   ),
                 ),
+              ),
+              
+              const Spacer(),
+              
+              // Share button
+              GestureDetector(
+                onTap: () {
+                  // TODO: Implement share functionality
+                },
+                child: Container(
+                  width: 24,
+                  height: 24,
+                  alignment: Alignment.center,
+                  child: const Icon(
+                    CupertinoIcons.share,
+                    color: Color(0xFF3375F8),
+                    size: 17,
+                  ),
+                ),
+              ),
+              
+              const SizedBox(width: 16),
+              
+              // Menu button (three dots)
+              GestureDetector(
+                onTap: () => _showMoreOptionsModal(context),
+                child: Container(
+                  width: 24,
+                  height: 24,
+                  alignment: Alignment.center,
+                  child: const Icon(
+                    CupertinoIcons.ellipsis,
+                    color: Color(0xFF3375F8),
+                    size: 17,
+                  ),
+                ),
+              ),
             ],
           ),
         ),
@@ -137,36 +155,6 @@ class NoteEditorHeader extends ConsumerWidget {
     );
   }
   
-  Widget _buildModalOption(String title, String icon, BuildContext context, {bool isDestructive = false}) {
-    return GestureDetector(
-      onTap: () => Navigator.of(context).pop(),
-      child: Container(
-        height: 50,
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        child: Row(
-          children: [
-            Text(
-              icon,
-              style: TextStyle(
-                color: isDestructive ? Colors.red : Colors.white,
-                fontSize: 17,
-                fontFamily: 'SF Pro Text',
-              ),
-            ),
-            const SizedBox(width: 12),
-            Text(
-              title,
-              style: TextStyle(
-                color: isDestructive ? Colors.red : Colors.white,
-                fontSize: 17,
-                fontFamily: 'SF Pro Text',
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
   
   Widget _buildModalIconOption(String title, IconData icon, BuildContext context, {bool isDestructive = false, VoidCallback? onTap}) {
     return GestureDetector(

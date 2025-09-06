@@ -223,66 +223,130 @@ class CustomModals {
   }
 
   // Checklist Modal
-  static void showChecklistModal(BuildContext context) {
+  static void showChecklistModal(BuildContext context, {VoidCallback? onChecklistInsert}) {
+    // Insert checklist immediately when modal opens
+    if (onChecklistInsert != null) {
+      onChecklistInsert();
+    }
+    
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        decoration: const BoxDecoration(
-          color: Color(0xFF2C2C2E),
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(10),
-            topRight: Radius.circular(10),
-          ),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(height: 12),
-            Container(
-              width: 36,
-              height: 5,
-              decoration: BoxDecoration(
-                color: Colors.grey,
-                borderRadius: BorderRadius.circular(2.5),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setModalState) {
+          // Track which option is selected
+          String selectedOption = 'checklist';
+          
+          return Container(
+            decoration: const BoxDecoration(
+              color: Color(0xFF2C2C2E),
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(10),
+                topRight: Radius.circular(10),
               ),
             ),
-            const SizedBox(height: 20),
-            
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: _buildChecklistOption(
-                      'checklist',
-                      CupertinoIcons.check_mark_circled,
-                      context,
-                    ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox(height: 12),
+                Container(
+                  width: 36,
+                  height: 5,
+                  decoration: BoxDecoration(
+                    color: Colors.grey,
+                    borderRadius: BorderRadius.circular(2.5),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _buildChecklistOption(
-                      'consistency\ntracker list',
-                      CupertinoIcons.square_grid_3x2,
-                      context,
-                    ),
+                ),
+                const SizedBox(height: 20),
+                
+                // Title with close button
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Row(
+                    children: [
+                      const Text(
+                        'Checklist',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          fontFamily: 'SF Pro Text',
+                        ),
+                      ),
+                      const Spacer(),
+                      GestureDetector(
+                        onTap: () => Navigator.of(context).pop(),
+                        child: const Icon(
+                          CupertinoIcons.xmark,
+                          color: Colors.white,
+                          size: 18,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _buildChecklistOption(
-                      'progress\ntracker list',
-                      CupertinoIcons.star,
-                      context,
-                    ),
+                ),
+                const SizedBox(height: 20),
+                
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: _buildChecklistOption(
+                          'checklist',
+                          CupertinoIcons.check_mark_circled,
+                          context,
+                          isSelected: selectedOption == 'checklist',
+                          onTap: () {
+                            setModalState(() {
+                              selectedOption = 'checklist';
+                            });
+                            // Checklist already inserted when modal opened, just close
+                            Navigator.of(context).pop();
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _buildChecklistOption(
+                          'consistency\ntracker list',
+                          CupertinoIcons.square_grid_3x2,
+                          context,
+                          isSelected: selectedOption == 'consistency',
+                          onTap: () {
+                            setModalState(() {
+                              selectedOption = 'consistency';
+                            });
+                            // Future functionality - just close for now
+                            Navigator.of(context).pop();
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _buildChecklistOption(
+                          'progress\ntracker list',
+                          CupertinoIcons.star,
+                          context,
+                          isSelected: selectedOption == 'progress',
+                          onTap: () {
+                            setModalState(() {
+                              selectedOption = 'progress';
+                            });
+                            // Future functionality - just close for now
+                            Navigator.of(context).pop();
+                          },
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+                
+                const SizedBox(height: 20),
+              ],
             ),
-            
-            const SizedBox(height: 20),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
@@ -310,6 +374,34 @@ class CustomModals {
               decoration: BoxDecoration(
                 color: Colors.grey,
                 borderRadius: BorderRadius.circular(2.5),
+              ),
+            ),
+            const SizedBox(height: 20),
+            
+            // Title with close button
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
+                children: [
+                  const Text(
+                    'Table',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      fontFamily: 'SF Pro Text',
+                    ),
+                  ),
+                  const Spacer(),
+                  GestureDetector(
+                    onTap: () => Navigator.of(context).pop(),
+                    child: const Icon(
+                      CupertinoIcons.xmark,
+                      color: Colors.white,
+                      size: 18,
+                    ),
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 20),
@@ -351,7 +443,7 @@ class CustomModals {
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       builder: (context) => Container(
-        height: MediaQuery.of(context).size.height * 0.4,
+        height: MediaQuery.of(context).size.height * 0.45,
         decoration: const BoxDecoration(
           color: Color(0xFF2C2C2E),
           borderRadius: BorderRadius.only(
@@ -369,6 +461,34 @@ class CustomModals {
               decoration: BoxDecoration(
                 color: Colors.grey,
                 borderRadius: BorderRadius.circular(2.5),
+              ),
+            ),
+            const SizedBox(height: 20),
+            
+            // Title with close button
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
+                children: [
+                  const Text(
+                    'Media',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      fontFamily: 'SF Pro Text',
+                    ),
+                  ),
+                  const Spacer(),
+                  GestureDetector(
+                    onTap: () => Navigator.of(context).pop(),
+                    child: const Icon(
+                      CupertinoIcons.xmark,
+                      color: Colors.white,
+                      size: 18,
+                    ),
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 20),
@@ -601,6 +721,7 @@ class CustomModals {
       context: context,
       backgroundColor: Colors.transparent,
       builder: (context) => Container(
+        height: MediaQuery.of(context).size.height * 0.25,
         decoration: const BoxDecoration(
           color: Color(0xFF2C2C2E),
           borderRadius: BorderRadius.only(
@@ -750,9 +871,6 @@ class CustomModals {
                     ],
                   ),
                   
-                  const SizedBox(height: 24), // Space between sections
-                  
-                  
                 ],
               ),
             ),
@@ -770,6 +888,7 @@ class CustomModals {
       context: context,
       backgroundColor: Colors.transparent,
       builder: (context) => Container(
+        height: MediaQuery.of(context).size.height * 0.25,
         decoration: const BoxDecoration(
           color: Color(0xFF2C2C2E),
           borderRadius: BorderRadius.only(
@@ -1337,29 +1456,37 @@ class CustomModals {
     );
   }
 
-  static Widget _buildChecklistOption(String title, IconData icon, BuildContext context) {
+  static Widget _buildChecklistOption(
+    String title, 
+    IconData icon, 
+    BuildContext context, {
+    bool isSelected = false,
+    VoidCallback? onTap,
+  }) {
     return GestureDetector(
-      onTap: () => Navigator.of(context).pop(),
+      onTap: onTap ?? () => Navigator.of(context).pop(),
       child: Container(
         height: 80,
         decoration: BoxDecoration(
-          color: Colors.grey.shade800,
+          color: isSelected ? Colors.grey.shade600 : Colors.grey.shade800,
           borderRadius: BorderRadius.circular(8),
+          border: isSelected ? Border.all(color: Colors.grey.shade400, width: 1) : null,
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
               icon,
-              color: Colors.white,
+              color: isSelected ? Colors.grey.shade200 : Colors.white,
               size: 24,
             ),
             const SizedBox(height: 8),
             Text(
               title,
-              style: const TextStyle(
-                color: Colors.white,
+              style: TextStyle(
+                color: isSelected ? Colors.grey.shade200 : Colors.white,
                 fontSize: 12,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
               ),
               textAlign: TextAlign.center,
             ),
