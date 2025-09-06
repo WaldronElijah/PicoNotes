@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_quill/flutter_quill.dart';
@@ -35,6 +36,55 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
     // In 11.x Attribute has a public constructor (key, scope, value)
     // Setting value=null unsets it
     return Attribute(a.key, a.scope, null);
+  }
+
+  // Returns (start, end, text) for the current line based on the plain text
+  ({int start, int end, String text}) _currentLinePlain() {
+    final sel = _quillController.selection;
+    final full = _quillController.document.toPlainText();
+    final i = sel.baseOffset.clamp(0, full.length);
+    final start = i > 0 ? (full.lastIndexOf('\n', i - 1) + 1) : 0;
+    final nextNewline = full.indexOf('\n', i);
+    final end = nextNewline == -1 ? full.length : nextNewline;
+    final text = full.substring(start, end);
+    return (start: start, end: end, text: text);
+  }
+
+  bool _isChecklistAtSelection() {
+    final attrs = _quillController.getSelectionStyle().attributes;
+    final list = attrs[Attribute.list.key]?.value;
+    return list == 'unchecked' || list == 'checked';
+  }
+
+  // Handle Backspace on an empty checklist line at line start.
+  // Return KeyEventResult.handled when we consume the key.
+  KeyEventResult _onEditorKey(FocusNode node, KeyEvent event) {
+    if (event is! KeyDownEvent) return KeyEventResult.ignored;
+    if (event.logicalKey != LogicalKeyboardKey.backspace) {
+      return KeyEventResult.ignored;
+    }
+
+    final sel = _quillController.selection;
+    if (!sel.isValid || !sel.isCollapsed) return KeyEventResult.ignored;
+
+    if (!_isChecklistAtSelection()) return KeyEventResult.ignored;
+
+    final line = _currentLinePlain();
+    final caretAtLineStart = sel.baseOffset == line.start;
+    final lineIsEmpty = line.text.trim().isEmpty;
+
+    if (caretAtLineStart && lineIsEmpty) {
+      // Remove the checklist attribute — turns it into a normal empty paragraph.
+      _quillController.formatSelection(_unset(Attribute.list));
+      // Optionally: keep caret where it is.
+      _quillController.updateSelection(
+        TextSelection.collapsed(offset: sel.baseOffset),
+        ChangeSource.local,
+      );
+      return KeyEventResult.handled;
+    }
+
+    return KeyEventResult.ignored;
   }
 
   @override
@@ -420,10 +470,12 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
                                   ),
                                 ),
                               ),
-                              child: QuillEditor.basic(
-                                controller: _quillController,
-                                focusNode: _focusNode,
-                                config: QuillEditorConfig(
+                              child: Focus(
+                                onKeyEvent: _onEditorKey,
+                                child: QuillEditor.basic(
+                                  controller: _quillController,
+                                  focusNode: _focusNode,
+                                  config: QuillEditorConfig(
                                   placeholder: '',
                                   padding: EdgeInsets.zero,
                                   minHeight: 100,
@@ -504,6 +556,7 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
                                   ),
                                 ),
                               ),
+                            ),
                             );
                           },
                         ),
