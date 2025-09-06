@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import '../../../../shared/widgets/brand_icon.dart';
+import '../../../../core/widgets/svg_icon.dart';
 
 // Connected button data class
 class _ConnectedButton {
   final String label;
-  final IconData icon;
+  final Widget icon;
   final bool isPrimary;
   final VoidCallback? onTap;
   final bool isActive;
@@ -294,7 +295,7 @@ class CustomModals {
                       Expanded(
                         child: _buildChecklistOption(
                           'checklist',
-                          CupertinoIcons.check_mark_circled,
+                          const SvgIcon('006-checklist', size: 24, color: Colors.white),
                           context,
                           isSelected: selectedOption == 'checklist',
                           onTap: () {
@@ -310,7 +311,7 @@ class CustomModals {
                       Expanded(
                         child: _buildChecklistOption(
                           'consistency\ntracker list',
-                          CupertinoIcons.square_grid_3x2,
+                          const Icon(CupertinoIcons.square_grid_3x2, color: Colors.white, size: 24),
                           context,
                           isSelected: selectedOption == 'consistency',
                           onTap: () {
@@ -326,7 +327,7 @@ class CustomModals {
                       Expanded(
                         child: _buildChecklistOption(
                           'progress\ntracker list',
-                          CupertinoIcons.star,
+                          const Icon(CupertinoIcons.star, color: Colors.white, size: 24),
                           context,
                           isSelected: selectedOption == 'progress',
                           onTap: () {
@@ -413,7 +414,7 @@ class CustomModals {
                   Expanded(
                     child: _buildTableOption(
                       'table',
-                      CupertinoIcons.table,
+                      const Icon(CupertinoIcons.table, color: Colors.white, size: 24),
                       context,
                     ),
                   ),
@@ -421,7 +422,7 @@ class CustomModals {
                   Expanded(
                     child: _buildTableOption(
                       'line table',
-                      CupertinoIcons.line_horizontal_3,
+                      const Icon(CupertinoIcons.line_horizontal_3, color: Colors.white, size: 24),
                       context,
                     ),
                   ),
@@ -500,25 +501,25 @@ class CustomModals {
                 scrollDirection: Axis.horizontal,
                 child: Row(
                   children: [
-                    _buildMediaSourceButton('Search', CupertinoIcons.search),
+                    _buildMediaSourceButton('Search', const Icon(CupertinoIcons.search, color: Colors.white, size: 20)),
                     const SizedBox(width: 12),
-                    _buildMediaSourceButton('Files', CupertinoIcons.folder),
+                    _buildMediaSourceButton('Files', const Icon(CupertinoIcons.folder, color: Colors.white, size: 20)),
                     const SizedBox(width: 12),
-                    _buildMediaSourceButton('Audio', CupertinoIcons.music_note),
+                    _buildMediaSourceButton('Audio', const Icon(CupertinoIcons.music_note, color: Colors.white, size: 20)),
                     const SizedBox(width: 12),
-                    _buildMediaSourceButton('Pinterest', CupertinoIcons.heart),
+                    _buildMediaSourceButton('Pinterest', const SvgIcon('001-pintrest', size: 20, color: Colors.white)),
                     const SizedBox(width: 12),
-                    _buildMediaSourceButton('YouTube', CupertinoIcons.play_circle),
+                    _buildMediaSourceButton('YouTube', const Icon(CupertinoIcons.play_circle, color: Colors.white, size: 20)),
                     const SizedBox(width: 12),
-                    _buildMediaSourceButton('TikTok', CupertinoIcons.music_note_2),
+                    _buildMediaSourceButton('TikTok', const SvgIcon('002-tiktok', size: 20)),
                     const SizedBox(width: 12),
-                    _buildMediaSourceButton('Spotify', CupertinoIcons.music_note),
+                    _buildMediaSourceButton('Spotify', const SvgIcon('005-spotify', size: 20)),
                     const SizedBox(width: 12),
-                    _buildMediaSourceButton('Apple Music', CupertinoIcons.music_note),
+                    _buildMediaSourceButton('Apple Music', const SvgIcon('004-applemusic', size: 20)),
                     const SizedBox(width: 12),
-                    _buildMediaSourceButton('SoundCloud', CupertinoIcons.music_note),
+                    _buildMediaSourceButton('SoundCloud', const SvgIcon('003-soundcloud-logo', size: 20, color: Colors.white)),
                     const SizedBox(width: 12),
-                    _buildMediaSourceButton('Reddit', CupertinoIcons.globe),
+                    _buildMediaSourceButton('Reddit', const Icon(CupertinoIcons.globe, color: Colors.white, size: 20)),
                   ],
                 ),
               ),
@@ -580,7 +581,7 @@ class CustomModals {
   }
 
   // Media source button (circular with brand colors)
-  static Widget _buildMediaSourceButton(String title, IconData icon) {
+  static Widget _buildMediaSourceButton(String title, Widget icon) {
     // Define brand colors (soft versions)
     Color getBrandColor(String brand) {
       switch (brand.toLowerCase()) {
@@ -622,10 +623,10 @@ class CustomModals {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              icon,
-              color: Colors.white,
-              size: 20,
+            SizedBox(
+              width: 20,
+              height: 20,
+              child: icon,
             ),
             const SizedBox(height: 2),
             Text(
@@ -720,7 +721,12 @@ class CustomModals {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (context) => Container(
+      builder: (context) => StatefulBuilder(
+        builder: (context, setModalState) {
+          // Track alignment state
+          bool isVerticalAlignment = true;
+          
+          return Container(
         height: MediaQuery.of(context).size.height * 0.25,
         decoration: const BoxDecoration(
           color: Color(0xFF2C2C2E),
@@ -801,16 +807,25 @@ class CustomModals {
                           const SizedBox(height: 12),
                           Row(
                             children: [
-                              _buildCarouselIcon(const Icon(
-                                CupertinoIcons.arrow_up_arrow_down,
-                                color: Colors.white,
-                                size: 20,
-                              )), // Reverse Order
+                              _buildCarouselIcon(
+                                GestureDetector(
+                                  onTap: () {
+                                    setModalState(() {
+                                      isVerticalAlignment = !isVerticalAlignment;
+                                    });
+                                  },
+                                  child: SvgIcon(
+                                    isVerticalAlignment ? '010-vertical-alignment' : '012-horizontal-alignment',
+                                    size: 20,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ), // Alignment Toggle
                               const SizedBox(width: 12),
-                              _buildCarouselIcon(const Icon(
-                                CupertinoIcons.arrow_up_left_arrow_down_right,
-                                color: Colors.white,
+                              _buildCarouselIcon(const SvgIcon(
+                                '013-resize',
                                 size: 20,
+                                color: Colors.white,
                               )), // Resize
                             ],
                           ),
@@ -831,39 +846,39 @@ class CustomModals {
                                 size: 20,
                               )), // Number List
                               const SizedBox(width: 12),
-                              _buildCarouselIcon(const Icon(
-                                CupertinoIcons.checkmark_circle,
-                                color: Colors.white,
+                              _buildCarouselIcon(const SvgIcon(
+                                '006-checklist',
                                 size: 20,
+                                color: Colors.white,
                               )), // Check List
                               const SizedBox(width: 12),
-                              _buildCarouselIcon(const Icon(
-                                CupertinoIcons.rectangle_on_rectangle,
-                                color: Colors.white,
+                              _buildCarouselIcon(const SvgIcon(
+                                '014-reorder',
                                 size: 20,
-                              )), // Rectangle Swap
+                                color: Colors.white,
+                              )), // Reorder
                             ],
                           ),
                           const SizedBox(height: 12),
                           Row(
                             children: [
-                              _buildCarouselIcon(const Icon(
-                                CupertinoIcons.text_justify,
-                                color: Colors.white,
+                              _buildCarouselIcon(const SvgIcon(
+                                '009-caption',
                                 size: 20,
-                              )), // Text Below Photo
+                                color: Colors.white,
+                              )), // Caption
                               const SizedBox(width: 12),
-                              _buildCarouselIcon(const Icon(
-                                CupertinoIcons.photo_fill_on_rectangle_fill,
-                                color: Colors.white,
+                              _buildCarouselIcon(const SvgIcon(
+                                '008-subtitle',
                                 size: 20,
-                              )), // Caption Within Photo
+                                color: Colors.white,
+                              )), // Subtitle
                               const SizedBox(width: 12),
-                              _buildCarouselIcon(const Icon(
-                                CupertinoIcons.waveform,
-                                color: Colors.white,
+                              _buildCarouselIcon(const SvgIcon(
+                                '007-addsong',
                                 size: 20,
-                              )), // Wave Form
+                                color: Colors.white,
+                              )), // Add Song
                             ],
                           ),
                         ],
@@ -878,6 +893,8 @@ class CustomModals {
             const SizedBox(height: 20),
           ],
         ),
+      );
+        },
       ),
     );
   }
@@ -968,16 +985,16 @@ class CustomModals {
                           const SizedBox(height: 12),
                           Row(
                             children: [
-                              _buildStackIcon(const Icon(
-                                CupertinoIcons.arrow_up_arrow_down,
-                                color: Colors.white,
+                              _buildStackIcon(const SvgIcon(
+                                '010-vertical-alignment',
                                 size: 20,
-                              )), // Reverse Order
+                                color: Colors.white,
+                              )), // Alignment Toggle
                               const SizedBox(width: 12),
-                              _buildStackIcon(const Icon(
-                                CupertinoIcons.arrow_up_left_arrow_down_right,
-                                color: Colors.white,
+                              _buildStackIcon(const SvgIcon(
+                                '013-resize',
                                 size: 20,
+                                color: Colors.white,
                               )), // Resize
                             ],
                           ),
@@ -998,39 +1015,39 @@ class CustomModals {
                                 size: 20,
                               )), // Number List
                               const SizedBox(width: 12),
-                              _buildStackIcon(const Icon(
-                                CupertinoIcons.checkmark_circle,
-                                color: Colors.white,
+                              _buildStackIcon(const SvgIcon(
+                                '006-checklist',
                                 size: 20,
+                                color: Colors.white,
                               )), // Check List
                               const SizedBox(width: 12),
-                              _buildStackIcon(const Icon(
-                                CupertinoIcons.rectangle_on_rectangle,
-                                color: Colors.white,
+                              _buildStackIcon(const SvgIcon(
+                                '014-reorder',
                                 size: 20,
-                              )), // Rectangle Swap
+                                color: Colors.white,
+                              )), // Reorder
                             ],
                           ),
                           const SizedBox(height: 12),
                           Row(
                             children: [
-                              _buildStackIcon(const Icon(
-                                CupertinoIcons.text_justify,
-                                color: Colors.white,
+                              _buildStackIcon(const SvgIcon(
+                                '009-caption',
                                 size: 20,
-                              )), // Text Below Photo
+                                color: Colors.white,
+                              )), // Caption
                               const SizedBox(width: 12),
-                              _buildStackIcon(const Icon(
-                                CupertinoIcons.photo_fill_on_rectangle_fill,
-                                color: Colors.white,
+                              _buildStackIcon(const SvgIcon(
+                                '008-subtitle',
                                 size: 20,
-                              )), // Caption Within Photo
+                                color: Colors.white,
+                              )), // Subtitle
                               const SizedBox(width: 12),
-                              _buildStackIcon(const Icon(
-                                CupertinoIcons.waveform,
-                                color: Colors.white,
+                              _buildStackIcon(const SvgIcon(
+                                '007-addsong',
                                 size: 20,
-                              )), // Wave Form
+                                color: Colors.white,
+                              )), // Add Song
                             ],
                           ),
                         ],
@@ -1382,10 +1399,10 @@ class CustomModals {
                     fontFamily: 'SF Pro Text',
                   ),
                 )
-              : Icon(
-                  button.icon,
-                  color: button.isActive ? Colors.white : Colors.white,
-                  size: isPrimary ? 20 : 16,
+              : SizedBox(
+                  width: isPrimary ? 20 : 16,
+                  height: isPrimary ? 20 : 16,
+                  child: button.icon,
                 ),
         ),
       ),
@@ -1458,7 +1475,7 @@ class CustomModals {
 
   static Widget _buildChecklistOption(
     String title, 
-    IconData icon, 
+    Widget icon, 
     BuildContext context, {
     bool isSelected = false,
     VoidCallback? onTap,
@@ -1475,10 +1492,10 @@ class CustomModals {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              icon,
-              color: isSelected ? Colors.grey.shade200 : Colors.white,
-              size: 24,
+            SizedBox(
+              width: 24,
+              height: 24,
+              child: icon,
             ),
             const SizedBox(height: 8),
             Text(
@@ -1496,7 +1513,7 @@ class CustomModals {
     );
   }
 
-  static Widget _buildTableOption(String title, IconData icon, BuildContext context) {
+  static Widget _buildTableOption(String title, Widget icon, BuildContext context) {
     return GestureDetector(
       onTap: () => Navigator.of(context).pop(),
       child: Container(
@@ -1508,10 +1525,10 @@ class CustomModals {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              icon,
-              color: Colors.white,
-              size: 24,
+            SizedBox(
+              width: 24,
+              height: 24,
+              child: icon,
             ),
             const SizedBox(height: 8),
             Text(
@@ -2091,25 +2108,25 @@ class CustomModals {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _buildFormatButton('B', CupertinoIcons.bold, isBold, () {
+          _buildFormatButton('B', const Icon(CupertinoIcons.bold, color: Colors.white, size: 20), isBold, () {
             onBold?.call();
             setModalState(() {
               // State will be updated by the parent component
             });
           }),
-          _buildFormatButton('I', CupertinoIcons.italic, isItalic, () {
+          _buildFormatButton('I', const Icon(CupertinoIcons.italic, color: Colors.white, size: 20), isItalic, () {
             onItalic?.call();
             setModalState(() {
               // State will be updated by the parent component
             });
           }),
-          _buildFormatButton('U', CupertinoIcons.underline, isUnderline, () {
+          _buildFormatButton('U', const Icon(CupertinoIcons.underline, color: Colors.white, size: 20), isUnderline, () {
             onUnderline?.call();
             setModalState(() {
               // State will be updated by the parent component
             });
           }),
-          _buildFormatButton('S', CupertinoIcons.strikethrough, isStrikethrough, () {
+          _buildFormatButton('S', const Icon(CupertinoIcons.strikethrough, color: Colors.white, size: 20), isStrikethrough, () {
             onStrikethrough?.call();
             setModalState(() {
               // State will be updated by the parent component
@@ -2130,11 +2147,11 @@ class CustomModals {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _buildFormatButton('', CupertinoIcons.circle_fill, false, () {
+          _buildFormatButton('', const Icon(CupertinoIcons.circle_fill, color: Colors.white, size: 20), false, () {
             print('Color picker tapped');
           }),
-          _buildFormatButton('', CupertinoIcons.paintbrush_fill, false, () {
-            print('Brush tapped');
+          _buildFormatButton('', const SvgIcon('015-marker', size: 20, color: Colors.white), false, () {
+            print('Marker tapped');
           }),
         ],
       ),
@@ -2148,7 +2165,7 @@ class CustomModals {
         color: const Color(0xFF3C3C3E),
         borderRadius: BorderRadius.circular(8),
       ),
-      child: _buildFormatButton('', CupertinoIcons.calendar, false, () {
+      child: _buildFormatButton('', const Icon(CupertinoIcons.calendar, color: Colors.white, size: 20), false, () {
         print('Calendar tapped');
       }),
     );
@@ -2164,10 +2181,10 @@ class CustomModals {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _buildFormatButton('', CupertinoIcons.list_bullet, false, () {
+          _buildFormatButton('', const Icon(CupertinoIcons.list_bullet, color: Colors.white, size: 20), false, () {
             onBulletList?.call();
           }),
-          _buildFormatButton('', CupertinoIcons.list_number, false, () {
+          _buildFormatButton('', const Icon(CupertinoIcons.list_number, color: Colors.white, size: 20), false, () {
             onNumberedList?.call();
           }),
         ],
@@ -2185,10 +2202,10 @@ class CustomModals {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _buildFormatButton('', CupertinoIcons.arrow_left, false, () {
+          _buildFormatButton('', const SvgIcon('018-indent-left-2', size: 20, color: Colors.white), false, () {
             onIndentLeft?.call();
           }),
-          _buildFormatButton('', CupertinoIcons.arrow_right, false, () {
+          _buildFormatButton('', const SvgIcon('016-indent-right', size: 20, color: Colors.white), false, () {
             onIndentRight?.call();
           }),
         ],
@@ -2203,7 +2220,7 @@ class CustomModals {
         color: const Color(0xFF3C3C3E),
         borderRadius: BorderRadius.circular(8),
       ),
-      child: _buildFormatButton('', CupertinoIcons.link, false, () {
+      child: _buildFormatButton('', const Icon(CupertinoIcons.link, color: Colors.white, size: 20), false, () {
         print('Deep link tapped');
       }),
     );
@@ -2219,10 +2236,10 @@ class CustomModals {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _buildFormatButton('', CupertinoIcons.square_fill, false, () {
+          _buildFormatButton('', const Icon(CupertinoIcons.square_fill, color: Colors.white, size: 20), false, () {
             print('Block note tapped');
           }),
-          _buildFormatButton('', CupertinoIcons.line_horizontal_3, false, () {
+          _buildFormatButton('', const SvgIcon('022-divider', size: 20, color: Colors.white), false, () {
             print('Divider tapped');
           }),
         ],
@@ -2231,7 +2248,7 @@ class CustomModals {
   }
 
   // Format button helper (Apple style) - Updated version
-  static Widget _buildFormatButton(String label, IconData icon, bool isActive, VoidCallback? onTap) {
+  static Widget _buildFormatButton(String label, Widget icon, bool isActive, VoidCallback? onTap) {
     return GestureDetector(
       onTap: () {
         HapticFeedback.lightImpact();
@@ -2255,10 +2272,10 @@ class CustomModals {
                   fontFamily: 'SF Pro Text',
                 ),
               )
-            : Icon(
-                icon,
-                color: isActive ? Colors.white : Colors.white,
-                size: 20,
+            : SizedBox(
+                width: 20,
+                height: 20,
+                child: icon,
               ),
         ),
       ),

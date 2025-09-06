@@ -15,6 +15,7 @@ dependencies:
   flutter_dotenv: ^5.1.0
   font_awesome_flutter: ^10.6.0
   flutter_staggered_grid_view: ^0.7.0
+  flutter_svg: ^2.0.10+1
 
   # Authentication
   google_sign_in: ^6.1.0
@@ -40,3 +41,5 @@ flutter:
     - .env
     - media/
     - assets/icons/
+    - assets/darkmodecollection/svg/
+    - assets/lightmodecollection/svg/

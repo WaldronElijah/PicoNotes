@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'custom_modals.dart';
+import '../../../../core/widgets/svg_icon.dart';
 
 class NoteEditorToolbar extends StatelessWidget {
   final VoidCallback? onFormatTap;
@@ -37,7 +38,7 @@ class NoteEditorToolbar extends StatelessWidget {
           // 1. Format button
           _buildToolbarIconButton(
             context,
-            CupertinoIcons.textformat,
+            const Icon(CupertinoIcons.textformat, color: Colors.white, size: 20),
             onTap: onFormatTap ?? () => CustomModals.showFormatModal(
               context,
               onBold: null,
@@ -57,35 +58,35 @@ class NoteEditorToolbar extends StatelessWidget {
           // 2. Checklist button
           _buildToolbarIconButton(
             context,
-            CupertinoIcons.check_mark_circled,
+            const SvgIcon('006-checklist', size: 20, color: Colors.white),
             onTap: onChecklistTap ?? () => CustomModals.showChecklistModal(context),
           ),
           
           // 3. Table button
           _buildToolbarIconButton(
             context,
-            CupertinoIcons.table,
+            const Icon(CupertinoIcons.table, color: Colors.white, size: 20),
             onTap: onTableTap ?? () => CustomModals.showTableModal(context),
           ),
           
           // 4. Photo gallery bank button
           _buildToolbarIconButton(
             context,
-            CupertinoIcons.photo,
+            const Icon(CupertinoIcons.photo, color: Colors.white, size: 20),
             onTap: onMediaTap ?? () => CustomModals.showMediaModal(context),
           ),
           
           // 5. Carousel button (layout)
           _buildToolbarIconButton(
             context,
-            CupertinoIcons.plus_rectangle_on_rectangle,
+            const SvgIcon('021-carousel', size: 24, color: Colors.white),
             onTap: onCarouselTap ?? () => CustomModals.showCarouselModal(context),
           ),
           
           // 6. Stack button
           _buildToolbarIconButton(
             context,
-            CupertinoIcons.rectangle_stack_badge_plus,
+            const SvgIcon('019-stack', size: 24, color: Colors.white),
             onTap: onStackTap ?? () => CustomModals.showStackModal(context),
           ),
           
@@ -99,7 +100,7 @@ class NoteEditorToolbar extends StatelessWidget {
           // 8. X button (close/dismiss)
           _buildToolbarIconButton(
             context,
-            CupertinoIcons.xmark,
+            const Icon(CupertinoIcons.xmark, color: Colors.white, size: 20),
             onTap: onCloseTap ?? () => FocusScope.of(context).unfocus(),
           ),
         ],
@@ -133,7 +134,7 @@ class NoteEditorToolbar extends StatelessWidget {
   
   Widget _buildToolbarIconButton(
     BuildContext context,
-    IconData icon, {
+    Widget icon, {
     Color? color,
     VoidCallback? onTap,
   }) {
@@ -143,11 +144,7 @@ class NoteEditorToolbar extends StatelessWidget {
         width: 32,
         height: 32,
         alignment: Alignment.center,
-        child: Icon(
-          icon,
-          color: color ?? Colors.white,
-          size: 20,
-        ),
+        child: icon,
       ),
     );
   }
@@ -160,9 +157,9 @@ class NoteEditorToolbar extends StatelessWidget {
         context,
         'AI Options',
         [
-          _buildModalIconOption('Summarize', CupertinoIcons.doc_text, context),
-          _buildModalIconOption('Generate Ideas', CupertinoIcons.lightbulb, context),
-          _buildModalIconOption('Improve Writing', CupertinoIcons.pencil_outline, context),
+          _buildModalIconOption('Summarize', const Icon(CupertinoIcons.doc_text, color: Colors.white, size: 17), context),
+          _buildModalIconOption('Generate Ideas', const Icon(CupertinoIcons.lightbulb, color: Colors.white, size: 17), context),
+          _buildModalIconOption('Improve Writing', const Icon(CupertinoIcons.pencil_outline, color: Colors.white, size: 17), context),
         ],
       ),
     );
@@ -214,7 +211,7 @@ class NoteEditorToolbar extends StatelessWidget {
     );
   }
   
-  Widget _buildModalIconOption(String title, IconData icon, BuildContext context) {
+  Widget _buildModalIconOption(String title, Widget icon, BuildContext context) {
     return GestureDetector(
       onTap: () => Navigator.of(context).pop(),
       child: Container(
@@ -222,10 +219,10 @@ class NoteEditorToolbar extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 20),
         child: Row(
           children: [
-            Icon(
-              icon,
-              color: Colors.white,
-              size: 17,
+            SizedBox(
+              width: 17,
+              height: 17,
+              child: icon,
             ),
             const SizedBox(width: 12),
             Text(
