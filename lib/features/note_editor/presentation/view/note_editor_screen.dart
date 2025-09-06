@@ -30,6 +30,9 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
   bool _isUnderline = false;
   bool _isStrikethrough = false;
   String _currentHeading = 'body'; // 'title', 'heading', 'subheading', 'body'
+  
+  // Smart list state
+  bool _applyingSmartRule = false;
 
   // Helper to unset attributes in flutter_quill 11.4.2
   Attribute _unset(Attribute a) {
@@ -58,7 +61,7 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
 
   // Handle Backspace on an empty checklist line at line start.
   // Return KeyEventResult.handled when we consume the key.
-  KeyEventResult _onEditorKey(FocusNode node, KeyEvent event) {
+  KeyEventResult _handleBackspaceForEmptyChecklist(KeyEvent event) {
     if (event is! KeyDownEvent) return KeyEventResult.ignored;
     if (event.logicalKey != LogicalKeyboardKey.backspace) {
       return KeyEventResult.ignored;
@@ -84,6 +87,83 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
       return KeyEventResult.handled;
     }
 
+    return KeyEventResult.ignored;
+  }
+
+  // Smart list helpers - Apple Notes style auto-conversion
+  void _scheduleSmartListCheck() {
+    if (_applyingSmartRule) return;
+    // Run after the space character is inserted
+    WidgetsBinding.instance.addPostFrameCallback((_) => _applySmartListRule());
+  }
+
+  void _applySmartListRule() {
+    if (_applyingSmartRule) return;
+    final sel = _quillController.selection;
+    if (!sel.isValid || !sel.isCollapsed) return;
+
+    final line = _currentLinePlain();
+    // Text from line start up to caret (what the user has typed on this line)
+    final prefixLen = sel.baseOffset - line.start;
+    if (prefixLen <= 0) return;
+    final prefix = line.text.substring(0, prefixLen);
+
+    // Only trigger when we're still at the start of the line (no preceding text)
+    final atLineStart = prefix.trimLeft().length == prefix.length;
+
+    // Patterns like Apple Notes
+    final bulletRe = RegExp(r'^\s*([\-*•])\s$');       // "-", "*", "•" + space
+    final orderedRe = RegExp(r'^\s*(\d+)[\.\)]\s$');   // "1. " or "1) "
+    final checklistRe = RegExp(r'^\s*\[\s\]\s$');      // "[ ] " (optional)
+
+    Attribute? toApply;
+    int removeCount = 0;
+
+    if (atLineStart && bulletRe.hasMatch(prefix)) {
+      toApply = Attribute.ul;
+      removeCount = prefix.length;
+    } else if (atLineStart && orderedRe.hasMatch(prefix)) {
+      toApply = Attribute.ol;
+      removeCount = prefix.length;
+    } else if (atLineStart && checklistRe.hasMatch(prefix)) {
+      // Optional: auto-checklist like Notes' "task" list
+      toApply = Attribute(Attribute.list.key, Attribute.list.scope, 'unchecked');
+      removeCount = prefix.length;
+    }
+
+    if (toApply == null) return;
+
+    _applyingSmartRule = true;
+    try {
+      // 1) Remove the typed marker (e.g., "1. " or "- ")
+      _quillController.replaceText(
+        line.start,
+        removeCount,
+        '',
+        TextSelection.collapsed(offset: line.start),
+      );
+
+      // 2) Apply list attribute to the (now empty) line
+      _quillController.formatSelection(toApply);
+
+      // Caret stays at line.start; the user can start typing the first item.
+    } finally {
+      _applyingSmartRule = false;
+    }
+  }
+
+  // Main key event handler that combines both features
+  KeyEventResult _onEditorKey(FocusNode node, KeyEvent event) {
+    // Handle Backspace for empty checklist deletion first
+    final backspaceHandled = _handleBackspaceForEmptyChecklist(event);
+    if (backspaceHandled != KeyEventResult.ignored) return backspaceHandled;
+
+    // When user presses SPACE, schedule a smart-list check after insertion
+    if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.space) {
+      _scheduleSmartListCheck();
+      return KeyEventResult.ignored; // let space be inserted
+    }
+    
     return KeyEventResult.ignored;
   }
 
