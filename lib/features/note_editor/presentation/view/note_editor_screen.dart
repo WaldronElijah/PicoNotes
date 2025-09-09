@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -6,6 +7,10 @@ import 'package:flutter_quill/flutter_quill.dart';
 import '../widgets/note_editor_toolbar.dart';
 import '../widgets/note_editor_header.dart';
 import '../widgets/custom_modals.dart';
+import '../table/table_embed_builder.dart';
+import '../table/table_embed.dart';
+import '../table/table_model.dart';
+import '../table/table_delete_bus.dart';
 import '../../data/repository/note_repository.dart';
 import '../../data/models/note.dart';
 import '../../../../core/theme/theme_provider.dart';
@@ -23,14 +28,17 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
   bool _isSaving = false;
   final DateTime _createdAt = DateTime.now();
   final NoteRepository _noteRepository = NoteRepository();
-  
+
+  // Table delete constants
+  static const String _kObjectChar = '\u{FFFC}'; // Quill's embed placeholder
+
   // Text formatting state
   bool _isBold = false;
   bool _isItalic = false;
   bool _isUnderline = false;
   bool _isStrikethrough = false;
   String _currentHeading = 'body'; // 'title', 'heading', 'subheading', 'body'
-  
+
   // Smart list state
   bool _applyingSmartRule = false;
 
@@ -39,6 +47,42 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
     // In 11.x Attribute has a public constructor (key, scope, value)
     // Setting value=null unsets it
     return Attribute(a.key, a.scope, null);
+  }
+
+  // Insert a 2x2 table using proper FlutterQuill embed
+  void _insertTable2x2() {
+    final sel = _quillController.selection;
+    final embed = TableBlockEmbed.initial2x2();
+
+    // Figure out current line bounds
+    final line = _currentLinePlain(); // (start, end, text)
+    int at = sel.baseOffset;
+
+    // If the caret isn't at an empty line start, break the line before inserting
+    final needsLeadingNewline = at != line.start || line.text.isNotEmpty;
+    if (needsLeadingNewline) {
+      _quillController.replaceText(
+        at, 0, '\n', TextSelection.collapsed(offset: at + 1),
+      );
+      at += 1;
+    }
+
+    // Insert the table embed (object replacement char)
+    _quillController.replaceText(
+      at, 0, embed, TextSelection.collapsed(offset: at + 1),
+    );
+    at += 1;
+
+    // Ensure a newline after the table so caret can move below
+    _quillController.replaceText(
+      at, 0, '\n', TextSelection.collapsed(offset: at + 1),
+    );
+
+    // Place caret on the new empty line BELOW the table
+    _quillController.updateSelection(
+      TextSelection.collapsed(offset: at + 1),
+      ChangeSource.local,
+    );
   }
 
   // Returns (start, end, text) for the current line based on the plain text
@@ -57,6 +101,72 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
     final attrs = _quillController.getSelectionStyle().attributes;
     final list = attrs[Attribute.list.key]?.value;
     return list == 'unchecked' || list == 'checked';
+  }
+
+  // Returns the plain text (object chars + newlines included)
+  String get _plain => _quillController.document.toPlainText();
+
+  String? _tableEmbedIdAtObjectIndex(int objIndex) {
+    final delta = _quillController.document.toDelta();
+    int pos = 0;
+    for (final op in delta.toList()) {
+      final d = op.data;
+      if (d is Map && d.containsKey('embed')) {
+        if (pos == objIndex) {
+          final embed = d['embed'];
+          if (embed is Map && embed[TableBlockEmbed.kType] is String) {
+            final jsonStr = embed[TableBlockEmbed.kType] as String;
+            try {
+              final model = TableModel.fromJson(jsonDecode(jsonStr));
+              return model.id;
+            } catch (e) {
+              return null;
+            }
+          }
+          return null;
+        }
+        pos += 1;
+      } else if (d is String) {
+        pos += d.length;
+      } else {
+        pos += 1;
+      }
+    }
+    return null;
+  }
+
+  bool _deleteTableById(String id) {
+    final delta = _quillController.document.toDelta();
+    int pos = 0;
+    for (final op in delta.toList()) {
+      final d = op.data;
+      if (d is Map && d.containsKey('embed')) {
+        final embed = d['embed'];
+        if (embed is Map && embed[TableBlockEmbed.kType] is String) {
+          final jsonStr = embed[TableBlockEmbed.kType] as String;
+          try {
+            final model = TableModel.fromJson(jsonDecode(jsonStr));
+            if (model.id == id) {
+              _quillController.replaceText(
+                pos,
+                1,
+                '',
+                TextSelection.collapsed(offset: pos),
+              );
+              return true;
+            }
+          } catch (e) {
+            // Continue searching
+          }
+        }
+        pos += 1;
+      } else if (d is String) {
+        pos += d.length;
+      } else {
+        pos += 1;
+      }
+    }
+    return false;
   }
 
   // Handle Backspace on an empty checklist line at line start.
@@ -112,9 +222,9 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
     final atLineStart = prefix.trimLeft().length == prefix.length;
 
     // Patterns like Apple Notes
-    final bulletRe = RegExp(r'^\s*([\-*•])\s$');       // "-", "*", "•" + space
-    final orderedRe = RegExp(r'^\s*(\d+)[\.\)]\s$');   // "1. " or "1) "
-    final checklistRe = RegExp(r'^\s*\[\s\]\s$');      // "[ ] " (optional)
+    final bulletRe = RegExp(r'^\s*([\-*•])\s$'); // "-", "*", "•" + space
+    final orderedRe = RegExp(r'^\s*(\d+)[\.\)]\s$'); // "1. " or "1) "
+    final checklistRe = RegExp(r'^\s*\[\s\]\s$'); // "[ ] " (optional)
 
     Attribute? toApply;
     int removeCount = 0;
@@ -127,7 +237,8 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
       removeCount = prefix.length;
     } else if (atLineStart && checklistRe.hasMatch(prefix)) {
       // Optional: auto-checklist like Notes' "task" list
-      toApply = Attribute(Attribute.list.key, Attribute.list.scope, 'unchecked');
+      toApply =
+          Attribute(Attribute.list.key, Attribute.list.scope, 'unchecked');
       removeCount = prefix.length;
     }
 
@@ -152,41 +263,76 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
     }
   }
 
-  // Main key event handler that combines both features
+  // Main key event handler that combines all features
   KeyEventResult _onEditorKey(FocusNode node, KeyEvent event) {
     // Handle Backspace for empty checklist deletion first
-    final backspaceHandled = _handleBackspaceForEmptyChecklist(event);
-    if (backspaceHandled != KeyEventResult.ignored) return backspaceHandled;
+    final checklistHandled = _handleBackspaceForEmptyChecklist(event);
+    if (checklistHandled != KeyEventResult.ignored) return checklistHandled;
+
+    // Handle table delete logic (Obsidian-style)
+    if (event is KeyDownEvent &&
+        event.logicalKey == LogicalKeyboardKey.backspace) {
+      final sel = _quillController.selection;
+      if (sel.isValid && sel.isCollapsed) {
+        final line = _currentLinePlain();
+        final atLineStart = sel.baseOffset == line.start;
+
+        if (atLineStart && line.start >= 2) {
+          final i = line.start;
+          // Looking for "...[object][newline]|"
+          if (_plain[i - 1] == '\n' && _plain[i - 2] == _kObjectChar) {
+            final tableId = _tableEmbedIdAtObjectIndex(i - 2);
+            if (tableId != null) {
+              if (TableDeleteBus.armedId.value == tableId) {
+                final ok = _deleteTableById(tableId);
+                TableDeleteBus.clearAll();
+                return ok ? KeyEventResult.handled : KeyEventResult.ignored;
+              } else {
+                TableDeleteBus.arm(
+                    tableId); // first Backspace → arm (highlight only)
+                return KeyEventResult.handled;
+              }
+            }
+          }
+        }
+      }
+      // any other backspace path → unarm
+      TableDeleteBus.clearAll();
+    } else if (event is KeyDownEvent) {
+      // any other key press → unarm
+      TableDeleteBus.clearAll();
+    }
 
     // When user presses SPACE, schedule a smart-list check after insertion
     if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.space) {
       _scheduleSmartListCheck();
       return KeyEventResult.ignored; // let space be inserted
     }
-    
+
     return KeyEventResult.ignored;
   }
 
   @override
   void initState() {
     super.initState();
-    
+
     // Listen to Quill changes to update button states
     _quillController.addListener(_onQuillChanged);
-    
+
     _focusNode.addListener(() {
       setState(() {
         // Focus state handled by toolbar visibility
       });
     });
-    
+
     // Set initial format to Title (H1) for first words
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _quillController.updateSelection(
         const TextSelection.collapsed(offset: 0),
         ChangeSource.local,
       );
-      _quillController.formatSelection(Attribute(Attribute.header.key, Attribute.header.scope, 1));
+      _quillController.formatSelection(
+          Attribute(Attribute.header.key, Attribute.header.scope, 1));
       setState(() => _currentHeading = 'title');
     });
   }
@@ -200,14 +346,17 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
 
   // Quill change listener to update button states
   void _onQuillChanged() {
+    // Clear armed table state when selection moves
+    TableDeleteBus.clearAll();
+
     final style = _quillController.getSelectionStyle(); // Style
     final attrs = style.attributes;
-    
+
     setState(() {
-      _isBold         = attrs.containsKey(Attribute.bold.key);
-      _isItalic       = attrs.containsKey(Attribute.italic.key);
-      _isUnderline    = attrs.containsKey(Attribute.underline.key);
-      _isStrikethrough= attrs.containsKey(Attribute.strikeThrough.key);
+      _isBold = attrs.containsKey(Attribute.bold.key);
+      _isItalic = attrs.containsKey(Attribute.italic.key);
+      _isUnderline = attrs.containsKey(Attribute.underline.key);
+      _isStrikethrough = attrs.containsKey(Attribute.strikeThrough.key);
 
       // Heading state (map 1→title, 2→heading, 3→subheading)
       if (attrs.containsKey(Attribute.header.key)) {
@@ -238,17 +387,19 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
     final attrs = _quillController.getSelectionStyle().attributes;
     final isOn = attrs.containsKey(Attribute.bold.key);
 
-    _quillController.formatSelection(isOn ? _unset(Attribute.bold) : Attribute.bold);
+    _quillController
+        .formatSelection(isOn ? _unset(Attribute.bold) : Attribute.bold);
   }
 
   void _toggleItalic() {
     final sel = _quillController.selection;
     if (!sel.isValid) return;
-    
+
     final attrs = _quillController.getSelectionStyle().attributes;
     final isOn = attrs.containsKey(Attribute.italic.key);
-    
-    _quillController.formatSelection(isOn ? _unset(Attribute.italic) : Attribute.italic);
+
+    _quillController
+        .formatSelection(isOn ? _unset(Attribute.italic) : Attribute.italic);
   }
 
   void _toggleUnderline() {
@@ -258,7 +409,8 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
     final attrs = _quillController.getSelectionStyle().attributes;
     final isOn = attrs.containsKey(Attribute.underline.key);
 
-    _quillController.formatSelection(isOn ? _unset(Attribute.underline) : Attribute.underline);
+    _quillController.formatSelection(
+        isOn ? _unset(Attribute.underline) : Attribute.underline);
   }
 
   void _toggleStrikethrough() {
@@ -269,7 +421,8 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
     final isOn = attrs.containsKey(Attribute.strikeThrough.key);
 
     try {
-      _quillController.formatSelection(isOn ? _unset(Attribute.strikeThrough) : Attribute.strikeThrough);
+      _quillController.formatSelection(
+          isOn ? _unset(Attribute.strikeThrough) : Attribute.strikeThrough);
     } catch (e) {
       // If strikeThrough is not supported, just toggle the button state
       setState(() {
@@ -306,19 +459,15 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
     );
   }
 
-
-
-
-
   void _setTextAlign(TextAlign alignment) {
     final sel = _quillController.selection;
     if (!sel.isValid) return;
 
     final attr = switch (alignment) {
-      TextAlign.center  => Attribute.centerAlignment,
-      TextAlign.right   => Attribute.rightAlignment,
+      TextAlign.center => Attribute.centerAlignment,
+      TextAlign.right => Attribute.rightAlignment,
       TextAlign.justify => Attribute.justifyAlignment,
-      _                 => Attribute.leftAlignment,
+      _ => Attribute.leftAlignment,
     };
     _quillController.formatSelection(attr);
     setState(() {
@@ -415,7 +564,7 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
   Future<void> _saveNote() async {
     // Get plain text content from Quill
     final quillContent = _quillController.document.toPlainText().trim();
-    
+
     if (quillContent.isEmpty) {
       // Don't save empty notes
       return;
@@ -442,7 +591,7 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
       );
 
       await _noteRepository.createNote(note);
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -450,7 +599,7 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
             backgroundColor: Colors.green,
           ),
         );
-        
+
         // Navigate back to home screen
         Navigator.of(context).pop();
       }
@@ -484,7 +633,7 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
               onSave: _saveNote,
               isSaving: _isSaving,
             ),
-            
+
             // Date only under header
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -494,7 +643,7 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
                 style: Theme.of(context).textTheme.bodySmall,
               ),
             ),
-            
+
             // Main content area
             Expanded(
               child: Container(
@@ -505,7 +654,6 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
                 ),
                 child: Column(
                   children: [
-                    
                     // Note content area - now using QuillEditor for rich text
                     Expanded(
                       child: Container(
@@ -513,34 +661,43 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         child: Consumer(
                           builder: (context, ref, child) {
-                            final themeNotifier = ref.read(themeProvider.notifier);
-                            final textColor =
-                                themeNotifier.isDarkMode ? Colors.white : Colors.black;
+                            final themeNotifier =
+                                ref.read(themeProvider.notifier);
+                            final textColor = themeNotifier.isDarkMode
+                                ? Colors.white
+                                : Colors.black;
 
                             return Theme(
                               data: Theme.of(context).copyWith(
                                 textTheme: Theme.of(context).textTheme.copyWith(
-                                  bodyLarge: TextStyle(color: textColor),
-                                  bodyMedium: TextStyle(color: textColor),
-                                  bodySmall: TextStyle(color: textColor),
-                                ),
+                                      bodyLarge: TextStyle(color: textColor),
+                                      bodyMedium: TextStyle(color: textColor),
+                                      bodySmall: TextStyle(color: textColor),
+                                    ),
                                 listTileTheme: ListTileThemeData(
                                   textColor: textColor,
                                   iconColor: textColor,
                                 ),
                                 // Apple Notes-style circular checkboxes
                                 checkboxTheme: CheckboxThemeData(
-                                  shape: const CircleBorder(), // <-- round circles
-                                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                  shape:
+                                      const CircleBorder(), // <-- round circles
+                                  materialTapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
                                   visualDensity: VisualDensity.compact,
-                                  side: WidgetStateBorderSide.resolveWith((states) {
+                                  side: WidgetStateBorderSide.resolveWith(
+                                      (states) {
                                     final cs = Theme.of(context).colorScheme;
                                     return BorderSide(
-                                      color: states.contains(WidgetState.selected) ? cs.primary : cs.outline,
+                                      color:
+                                          states.contains(WidgetState.selected)
+                                              ? cs.primary
+                                              : cs.outline,
                                       width: 2,
                                     );
                                   }),
-                                  fillColor: WidgetStateProperty.resolveWith((states) {
+                                  fillColor:
+                                      WidgetStateProperty.resolveWith((states) {
                                     return states.contains(WidgetState.selected)
                                         ? Theme.of(context).colorScheme.primary
                                         : Colors.transparent;
@@ -556,97 +713,95 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
                                   controller: _quillController,
                                   focusNode: _focusNode,
                                   config: QuillEditorConfig(
-                                  placeholder: '',
-                                  padding: EdgeInsets.zero,
-                                  minHeight: 100,
-                                  maxHeight: double.infinity,
-                                  customStyles: DefaultStyles(
-                                    // Body text - SF Pro Text, ~17pt, Regular
-                                    paragraph: DefaultTextBlockStyle(
-                                      TextStyle(
-                                        fontSize: 17,
-                                        fontFamily: 'SF Pro Text',
-                                        fontWeight: FontWeight.w400,
-                                        color: textColor,
-                                        height: 1.2,
+                                    placeholder: '',
+                                    padding: EdgeInsets.zero,
+                                    minHeight: 100,
+                                    maxHeight: double.infinity,
+                                    enableInteractiveSelection: true,
+                                    embedBuilders: [
+                                      TableEmbedBuilder(),
+                                    ],
+                                    customStyles: DefaultStyles(
+                                      paragraph: DefaultTextBlockStyle(
+                                        TextStyle(
+                                          fontSize: 17,
+                                          fontFamily: 'SF Pro Text',
+                                          fontWeight: FontWeight.w400,
+                                          color: textColor,
+                                          height: 1.2,
+                                        ),
+                                        const HorizontalSpacing(0, 0),
+                                        const VerticalSpacing(0, 0),
+                                        const VerticalSpacing(0, 0),
+                                        null,
                                       ),
-                                      const HorizontalSpacing(0, 0),
-                                      const VerticalSpacing(0, 0),
-                                      const VerticalSpacing(0, 0),
-                                      null,
-                                    ),
-                                    // Title - SF Pro Display, Larger than body, Semibold/Bold
-                                    h1: DefaultTextBlockStyle(
-                                      TextStyle(
-                                        fontSize: 28,
-                                        fontFamily: 'SF Pro Display',
-                                        fontWeight: FontWeight.w600, // Semibold
-                                        color: textColor,
-                                        height: 1.1,
+                                      h1: DefaultTextBlockStyle(
+                                        TextStyle(
+                                          fontSize: 28,
+                                          fontFamily: 'SF Pro Display',
+                                          fontWeight: FontWeight.w600,
+                                          color: textColor,
+                                          height: 1.1,
+                                        ),
+                                        const HorizontalSpacing(0, 0),
+                                        const VerticalSpacing(0, 0),
+                                        const VerticalSpacing(0, 0),
+                                        null,
                                       ),
-                                      const HorizontalSpacing(0, 0),
-                                      const VerticalSpacing(0, 0),
-                                      const VerticalSpacing(0, 0),
-                                      null,
-                                    ),
-                                    // Heading - SF Pro Display/Text, Slightly larger than body, Bold
-                                    h2: DefaultTextBlockStyle(
-                                      TextStyle(
-                                        fontSize: 20,
-                                        fontFamily: 'SF Pro Text',
-                                        fontWeight: FontWeight.w700, // Bold
-                                        color: textColor,
-                                        height: 1.2,
+                                      h2: DefaultTextBlockStyle(
+                                        TextStyle(
+                                          fontSize: 20,
+                                          fontFamily: 'SF Pro Text',
+                                          fontWeight: FontWeight.w700,
+                                          color: textColor,
+                                          height: 1.2,
+                                        ),
+                                        const HorizontalSpacing(0, 0),
+                                        const VerticalSpacing(0, 0),
+                                        const VerticalSpacing(0, 0),
+                                        null,
                                       ),
-                                      const HorizontalSpacing(0, 0),
-                                      const VerticalSpacing(0, 0),
-                                      const VerticalSpacing(0, 0),
-                                      null,
-                                    ),
-                                    // Subheading - SF Pro Text, Same size as body, Bold
-                                    h3: DefaultTextBlockStyle(
-                                      TextStyle(
-                                        fontSize: 17,
-                                        fontFamily: 'SF Pro Text',
-                                        fontWeight: FontWeight.w700, // Bold
-                                        color: textColor,
-                                        height: 1.2,
+                                      h3: DefaultTextBlockStyle(
+                                        TextStyle(
+                                          fontSize: 17,
+                                          fontFamily: 'SF Pro Text',
+                                          fontWeight: FontWeight.w700,
+                                          color: textColor,
+                                          height: 1.2,
+                                        ),
+                                        const HorizontalSpacing(0, 0),
+                                        const VerticalSpacing(0, 0),
+                                        const VerticalSpacing(0, 0),
+                                        null,
                                       ),
-                                      const HorizontalSpacing(0, 0),
-                                      const VerticalSpacing(0, 0),
-                                      const VerticalSpacing(0, 0),
-                                      null,
-                                    ),
-                                    // Lists - SF Pro Text with Apple Notes-style spacing
-                                    lists: DefaultListBlockStyle(
-                                      TextStyle(
-                                        fontSize: 17,
-                                        fontFamily: 'SF Pro Text',
-                                        fontWeight: FontWeight.w400,
-                                        color: textColor,
-                                        height: 1.2,
+                                      lists: DefaultListBlockStyle(
+                                        TextStyle(
+                                          fontSize: 17,
+                                          fontFamily: 'SF Pro Text',
+                                          fontWeight: FontWeight.w400,
+                                          color: textColor,
+                                          height: 1.2,
+                                        ),
+                                        const HorizontalSpacing(18, 12),
+                                        const VerticalSpacing(8, 8),
+                                        const VerticalSpacing(8, 8),
+                                        null,
+                                        null,
                                       ),
-                                      // HorizontalSpacing(indent, gapBetweenCheckboxAndText)
-                                      const HorizontalSpacing(18, 12), // <-- more gap between circle & text
-                                      const VerticalSpacing(8, 8),      // <-- spacing between items
-                                      const VerticalSpacing(8, 8),      // <-- spacing above/below list block
-                                      null, // keep these null – DON'T pass a function here
-                                      null,
                                     ),
                                   ),
                                 ),
                               ),
-                            ),
-                            );
+                            ); // <— close Theme return
                           },
-                        ),
+                        ), // <— close Consumer
                       ),
                     ),
                   ],
                 ),
               ),
             ),
-            
+
             // Toolbar at the bottom - always show for now to fix the issue
             NoteEditorToolbar(
               onFormatTap: () => CustomModals.showFormatModal(
@@ -672,7 +827,10 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
                 context,
                 onChecklistInsert: _insertChecklist,
               ),
-              onTableTap: () => CustomModals.showTableModal(context),
+              onTableTap: () {
+                _insertTable2x2();
+                CustomModals.showTableModal(context);
+              },
               onMediaTap: () => CustomModals.showMediaModal(context),
               onCarouselTap: () => CustomModals.showCarouselModal(context),
               onStackTap: () => CustomModals.showStackModal(context),
@@ -686,10 +844,20 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
 
   String _formatDateTime(DateTime dateTime) {
     final months = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December'
     ];
-    
+
     final month = months[dateTime.month - 1];
     final day = dateTime.day;
     final year = dateTime.year;
@@ -697,19 +865,21 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
     final minute = dateTime.minute;
     final ampm = hour >= 12 ? 'pm' : 'am';
     final hour12 = hour == 0 ? 12 : (hour > 12 ? hour - 12 : hour);
-    
+
     return '$month $day${_getDaySuffix(day)}, $year at $hour12:${minute.toString().padLeft(2, '0')} $ampm';
   }
 
   String _getDaySuffix(int day) {
     if (day >= 11 && day <= 13) return 'th';
     switch (day % 10) {
-      case 1: return 'st';
-      case 2: return 'nd';
-      case 3: return 'rd';
-      default: return 'th';
+      case 1:
+        return 'st';
+      case 2:
+        return 'nd';
+      case 3:
+        return 'rd';
+      default:
+        return 'th';
     }
   }
-
-
 }
